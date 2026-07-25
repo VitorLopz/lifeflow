@@ -1,0 +1,314 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =========================================================
+// USUÁRIO & CONFIGURAÇÕES
+// =========================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+
+  settings     Settings?
+  tasks        Task[]
+  projects     Project[]
+  habits       Habit[]
+  habitLogs    HabitLog[]
+  transactions Transaction[]
+  goals        Goal[]
+  journalEntries JournalEntry[]
+  notes        Note[]
+  books        Book[]
+  courses      Course[]
+  workouts     Workout[]
+  runs         Run[]
+  sleepLogs    SleepLog[]
+  meals        Meal[]
+  weightLogs   WeightLog[]
+  waterLogs    WaterLog[]
+  files        FileMeta[]
+  calendarEvents CalendarEvent[]
+}
+
+model Settings {
+  id           String  @id @default(cuid())
+  theme        String  @default("dark")
+  notifHabits  Boolean @default(true)
+  notifTreino  Boolean @default(true)
+  notifResumo  Boolean @default(false)
+  userId       String  @unique
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =========================================================
+// PLANEJAR
+// =========================================================
+
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  category  String?
+  priority  String   @default("media") // alta | media | baixa
+  due       DateTime
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId, due])
+  @@index([projectId])
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  tag       String?
+  status    String   @default("planejamento") // planejamento | andamento | pausado | finalizado
+  progress  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks  Task[]
+
+  @@index([userId, status])
+}
+
+model Goal {
+  id       String @id @default(cuid())
+  title    String
+  category String?
+  period   String  @default("Anual")
+  target   Float
+  current  Float   @default(0)
+  unit     String  @default("un.") // ex.: "dias", "km", "livros", "R$"
+  step     Float   @default(1)     // quanto cada clique de +/- soma/subtrai
+
+  habitId  String?
+  habit    Habit?  @relation(fields: [habitId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([habitId])
+}
+
+// =========================================================
+// BEM-ESTAR
+// =========================================================
+
+model Habit {
+  id     String @id @default(cuid())
+  name   String
+  icon   String?
+
+  userId String
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs   HabitLog[]
+  goals  Goal[]
+
+  @@index([userId])
+}
+
+model HabitLog {
+  id      String   @id @default(cuid())
+  date    DateTime @db.Date
+  habitId String
+  habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+}
+
+model Workout {
+  id             String   @id @default(cuid())
+  title          String
+  date           DateTime @db.Date
+  notes          String?
+  mainLift       String?  // ex.: "Supino reto" — exercício de referência p/ acompanhar evolução
+  mainLiftWeight Float?   // carga usada no exercício de referência nesta sessão (kg)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model Run {
+  id       String   @id @default(cuid())
+  distance Float
+  time     String   // formato mm:ss
+  date     DateTime @db.Date
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model SleepLog {
+  id      String   @id @default(cuid())
+  date    DateTime @db.Date
+  hours   Float
+  quality Int      @default(3)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model Meal {
+  id       String   @id @default(cuid())
+  name     String
+  calories Int
+  date     DateTime @db.Date
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model WeightLog {
+  id      String   @id @default(cuid())
+  date    DateTime @db.Date
+  kg      Float
+  bodyFat Float?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model WaterLog {
+  id     String   @id @default(cuid())
+  date   DateTime @db.Date
+  cups   Int      @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+// =========================================================
+// CONHECIMENTO
+// =========================================================
+
+model JournalEntry {
+  id    String   @id @default(cuid())
+  date  DateTime @db.Date
+  mood  String   @default("😐")
+  text  String
+  tags  String[] @default([])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model Note {
+  id      String   @id @default(cuid())
+  title   String
+  content String
+  tags    String[] @default([])
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Book {
+  id           String @id @default(cuid())
+  title        String
+  author       String?
+  progress     Int    @default(0) // calculado a partir de currentPage/totalPages quando informados
+  rating       Int    @default(0)
+  totalPages   Int?
+  currentPage  Int?   @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id             String @id @default(cuid())
+  title          String
+  platform       String?
+  progress       Int    @default(0) // calculado a partir de currentLesson/totalLessons quando informados
+  totalLessons   Int?
+  currentLesson  Int?   @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =========================================================
+// FINANCEIRO
+// =========================================================
+
+model Transaction {
+  id       String   @id @default(cuid())
+  desc     String
+  category String?
+  type     String   // receita | despesa
+  amount   Float    // positivo = receita, negativo = despesa
+  date     DateTime @db.Date
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+// =========================================================
+// SISTEMA
+// =========================================================
+
+model FileMeta {
+  id       String   @id @default(cuid())
+  name     String
+  project  String?
+  size     String?
+  path     String?  // caminho no disco (ou chave no storage externo)
+  mimeType String?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CalendarEvent {
+  id       String   @id @default(cuid())
+  title    String
+  date     DateTime @db.Date
+  category String   @default("evento") // tarefa | habito | treino | evento
+  notes    String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
