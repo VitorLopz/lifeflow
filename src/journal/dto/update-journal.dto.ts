@@ -1,9 +1,11 @@
-import { IsArray, IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateJournalEntryDto {
   @IsOptional()
-  @IsDateString()
-  date?: string;
+  @Type(() => Date)
+  @IsDate()
+  date?: Date;
 
   @IsOptional()
   @IsString()

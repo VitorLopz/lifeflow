@@ -1,4 +1,5 @@
-import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Min, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateMealDto {
   @IsOptional()
@@ -12,6 +13,7 @@ export class UpdateMealDto {
   calories?: number;
 
   @IsOptional()
-  @IsDateString()
-  date?: string;
+  @Type(() => Date)
+  @IsDate()
+  date?: Date;
 }

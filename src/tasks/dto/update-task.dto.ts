@@ -1,4 +1,5 @@
-import { IsBoolean, IsDateString, IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateTaskDto {
   @IsOptional()
@@ -15,8 +16,9 @@ export class UpdateTaskDto {
   priority?: string;
 
   @IsOptional()
-  @IsDateString()
-  due?: string;
+  @Type(() => Date)
+  @IsDate()
+  due?: Date;
 
   @IsOptional()
   @IsBoolean()

@@ -1,20 +1,22 @@
-import { IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateTransactionDto {
   @IsString()
   @IsNotEmpty()
-  desc: string;
+  desc!: string;
 
   @IsOptional()
   @IsString()
   category?: string;
 
   @IsIn(['receita','despesa'])
-  type: string;
+  type!: string;
 
   @IsNumber()
-  amount: number;
+  amount!: number;
 
-  @IsDateString()
-  date: string;
+  @Type(() => Date)
+  @IsDate()
+  date!: Date;
 }

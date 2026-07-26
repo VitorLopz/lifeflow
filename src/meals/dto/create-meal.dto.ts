@@ -1,14 +1,16 @@
-import { IsDateString, IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, Min, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateMealDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsInt()
   @Min(0)
-  calories: number;
+  calories!: number;
 
-  @IsDateString()
-  date: string;
+  @Type(() => Date)
+  @IsDate()
+  date!: Date;
 }

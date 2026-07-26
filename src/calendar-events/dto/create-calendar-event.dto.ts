@@ -1,11 +1,13 @@
-import { IsDateString, IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateCalendarEventDto {
   @IsString() @IsNotEmpty()
-  title: string;
+  title!: string;
 
-  @IsDateString()
-  date: string;
+  @Type(() => Date)
+  @IsDate()
+  date!: Date;
 
   @IsOptional() @IsIn(['tarefa', 'habito', 'treino', 'evento'])
   category?: string;

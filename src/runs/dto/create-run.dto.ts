@@ -1,13 +1,15 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateRunDto {
   @IsNumber()
-  distance: number;
+  distance!: number;
 
   @IsString()
   @IsNotEmpty()
-  time: string;
+  time!: string;
 
-  @IsDateString()
-  date: string;
+  @Type(() => Date)
+  @IsDate()
+  date!: Date;
 }

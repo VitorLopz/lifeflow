@@ -1,4 +1,5 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateRunDto {
   @IsOptional()
@@ -11,6 +12,7 @@ export class UpdateRunDto {
   time?: string;
 
   @IsOptional()
-  @IsDateString()
-  date?: string;
+  @Type(() => Date)
+  @IsDate()
+  date?: Date;
 }

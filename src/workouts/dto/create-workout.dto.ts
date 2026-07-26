@@ -1,11 +1,13 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateWorkoutDto {
   @IsString() @IsNotEmpty()
-  title: string;
+  title!: string;
 
-  @IsDateString()
-  date: string;
+  @Type(() => Date)
+  @IsDate()
+  date!: Date;
 
   @IsOptional() @IsString()
   notes?: string;

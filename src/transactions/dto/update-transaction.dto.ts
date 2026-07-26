@@ -1,4 +1,5 @@
-import { IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateTransactionDto {
   @IsOptional()
@@ -19,6 +20,7 @@ export class UpdateTransactionDto {
   amount?: number;
 
   @IsOptional()
-  @IsDateString()
-  date?: string;
+  @Type(() => Date)
+  @IsDate()
+  date?: Date;
 }
