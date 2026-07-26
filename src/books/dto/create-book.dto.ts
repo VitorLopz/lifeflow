@@ -2,7 +2,7 @@ import { IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validat
 
 export class CreateBookDto {
   @IsString() @IsNotEmpty()
-  title: string;
+  title!: string;
 
   @IsOptional() @IsString()
   author?: string;
@@ -18,4 +18,7 @@ export class CreateBookDto {
 
   @IsOptional() @IsInt() @Min(0)
   currentPage?: number;
+
+  @IsOptional() @IsString()
+  coverUrl?: string;
 }

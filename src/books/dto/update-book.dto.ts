@@ -18,4 +18,7 @@ export class UpdateBookDto {
 
   @IsOptional() @IsInt() @Min(0)
   currentPage?: number;
+
+  @IsOptional() @IsString()
+  coverUrl?: string;
 }

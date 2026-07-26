@@ -244,6 +244,7 @@ model Book {
   id           String @id @default(cuid())
   title        String
   author       String?
+  coverUrl     String?
   progress     Int    @default(0) // calculado a partir de currentPage/totalPages quando informados
   rating       Int    @default(0)
   totalPages   Int?
