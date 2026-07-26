@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LifeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0D10; --bg-elevated:#101318; --surface:#161A1F; --surface-hover:#1D2229;
+    --border:#262B32; --border-soft:#1D2126; --text:#EDEEF1; --text-muted:#8D9199; --text-faint:#54585F;
+    --teal:#4FD8C4; --violet:#8B7CF6; --amber:#F0A93C; --rose:#F0688C;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
+    --radius: 12px;
+    --font-display:'Space Grotesk', sans-serif; --font-body:'Inter', sans-serif; --font-mono:'JetBrains Mono', monospace;
+  }
+  html[data-theme="light"]{
+    --bg:#F6F5F1; --bg-elevated:#FBFAF8; --surface:#FFFFFF; --surface-hover:#F1EFEA;
+    --border:#E7E4DC; --border-soft:#EFEDE7; --text:#191A1C; --text-muted:#6B6E73; --text-faint:#A2A5AA;
+    --shadow: 0 1px 2px rgba(20,20,10,.04), 0 8px 24px -10px rgba(20,20,10,.12);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);-webkit-font-smoothing:antialiased;transition:background .25s ease,color .25s ease;}
+  ::selection{background:var(--teal);color:#0B0D10;}
+  a{color:inherit;text-decoration:none;}
+  button,input,select,textarea{font-family:inherit;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+  .app{display:grid;grid-template-columns:250px 1fr;min-height:100vh;}
+
+  .sidebar{background:var(--bg-elevated);border-right:1px solid var(--border-soft);padding:20px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 6px;}
+  .brand-mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--teal),var(--violet));position:relative;flex-shrink:0;}
+  .brand-mark::after{content:"";position:absolute;inset:0;border-radius:9px;background:linear-gradient(135deg,rgba(255,255,255,.35),transparent 60%);}
+  .brand-name{font-family:var(--font-display);font-weight:600;font-size:16.5px;letter-spacing:-.01em;}
+  .storage-pill{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text-faint);padding:0 8px 8px;}
+  .storage-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0;}
+  .storage-dot.off{background:var(--rose);}
+  .nav-group{display:flex;flex-direction:column;gap:2px;}
+  .nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-faint);font-weight:600;padding:10px 10px 6px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-muted);font-size:13.5px;font-weight:500;cursor:pointer;border:1px solid transparent;position:relative;}
+  .nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.9;}
+  .nav-item:hover{background:var(--surface-hover);color:var(--text);}
+  .nav-item.active{background:var(--surface);color:var(--text);border-color:var(--border);box-shadow:var(--shadow);}
+  .nav-item.active::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:3px;height:16px;border-radius:3px;background:linear-gradient(var(--teal),var(--violet));}
+  .nav-badge{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);background:var(--surface-hover);padding:1px 6px;border-radius:20px;}
+  .sidebar-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid var(--border-soft);background:var(--surface);cursor:pointer;}
+  .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--rose));flex-shrink:0;}
+  .sidebar-foot .who{display:flex;flex-direction:column;line-height:1.25;flex:1;min-width:0;}
+  .sidebar-foot .who b{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sidebar-foot .who span{font-size:11px;color:var(--text-muted);}
+
+  .main{display:flex;flex-direction:column;min-width:0;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:16px 26px;border-bottom:1px solid var(--border-soft);}
+  .page-title{font-family:var(--font-display);font-size:19px;font-weight:600;letter-spacing:-.01em;}
+  .page-sub{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
+  .search-pill{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);padding:7px 12px;border-radius:9px;color:var(--text-faint);font-size:12.5px;min-width:230px;cursor:pointer;}
+  .search-pill kbd{margin-left:auto;font-family:var(--font-mono);font-size:10px;background:var(--surface-hover);border:1px solid var(--border);padding:1px 6px;border-radius:5px;color:var(--text-muted);}
+  .icon-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-muted);flex-shrink:0;}
+  .icon-btn:hover{color:var(--text);background:var(--surface-hover);}
+  .icon-btn svg{width:16px;height:16px;}
+
+  .flow-ribbon{height:3px;width:100%;background:var(--border-soft);position:relative;overflow:hidden;}
+  .flow-ribbon-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--teal),var(--violet));transition:width .4s ease;}
+  .flow-ribbon-fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);width:40%;animation:sweep 3.2s ease-in-out infinite;}
+  @keyframes sweep{0%{transform:translateX(-120%);}100%{transform:translateX(280%);}}
+
+  .content{padding:24px 26px 60px;flex:1;}
+  .page{display:none;}
+  .page.active{display:block;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  h1,h2,h3{font-family:var(--font-display);margin:0;letter-spacing:-.01em;}
+  .section-title{font-size:14px;font-weight:600;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+  .section-title .tag{font-family:var(--font-mono);font-size:10.5px;font-weight:500;color:var(--text-faint);background:var(--surface-hover);padding:2px 7px;border-radius:20px;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+  .grid{display:grid;gap:14px;}
+
+  .hero{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;gap:20px;flex-wrap:wrap;}
+  .hero h1{font-size:26px;}
+  .hero p{color:var(--text-muted);font-size:13px;margin-top:4px;}
+  .hero-stats{display:flex;gap:22px;}
+  .hero-stat{text-align:right;}
+  .hero-stat b{display:block;font-family:var(--font-mono);font-size:20px;font-weight:600;}
+  .hero-stat span{font-size:11px;color:var(--text-muted);}
+
+  .stat-grid{grid-template-columns:repeat(4,1fr);margin-bottom:18px;}
+  .stat-card{display:flex;flex-direction:column;gap:6px;}
+  .stat-top{display:flex;justify-content:space-between;align-items:center;}
+  .stat-top .ic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+  .stat-top .ic svg{width:14px;height:14px;}
+  .stat-val{font-family:var(--font-mono);font-size:22px;font-weight:600;}
+  .stat-label{font-size:11.5px;color:var(--text-muted);}
+  .stat-delta{font-size:11px;font-weight:600;}
+  .up{color:var(--teal);} .down{color:var(--rose);}
+
+  .bento{grid-template-columns:1.3fr 1fr;margin-bottom:14px;}
+  .bento-row2{grid-template-columns:1fr 1fr 1fr;margin-bottom:14px;}
+
+  .task-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border-soft);font-size:13px;}
+  .task-row:last-child{border-bottom:none;}
+  .check{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;cursor:pointer;}
+  .check.done{background:var(--teal);border-color:var(--teal);position:relative;}
+  .check.done::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #0B0D10;border-width:0 1.5px 1.5px 0;transform:rotate(40deg);}
+  .task-row.strike .t-name{text-decoration:line-through;color:var(--text-faint);}
+  .t-name{flex:1;}
+  .pill{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;font-family:var(--font-mono);white-space:nowrap;}
+  .pill.high{background:rgba(240,104,140,.14);color:var(--rose);}
+  .pill.media{background:rgba(240,169,60,.14);color:var(--amber);}
+  .pill.baixa{background:rgba(79,216,196,.14);color:var(--teal);}
+  .row-del{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-faint);cursor:pointer;flex-shrink:0;background:transparent;border:none;}
+  .row-del:hover{color:var(--rose);background:rgba(240,104,140,.1);}
+  .row-del svg{width:13px;height:13px;}
+
+  .mini-bar-chart{display:flex;align-items:flex-end;gap:8px;height:110px;padding-top:8px;}
+  .mini-bar{flex:1;background:linear-gradient(180deg,var(--violet),var(--teal));border-radius:5px 5px 2px 2px;position:relative;opacity:.9;min-height:3px;cursor:default;transition:opacity .15s;}
+  .mini-bar:hover{opacity:1;filter:brightness(1.08);}
+  .chart-tooltip{position:fixed;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);padding:8px 11px;border-radius:8px;font-size:11.5px;line-height:1.5;pointer-events:none;z-index:400;opacity:0;transform:translateY(4px);transition:opacity .12s;white-space:nowrap;}
+  .chart-tooltip.show{opacity:1;}
+  .chart-tooltip b{display:block;font-size:12px;margin-bottom:2px;}
+  .line-chart-wrap{position:relative;}
+  .line-chart-wrap svg{width:100%;display:block;overflow:visible;}
+  .line-chart-dot{cursor:pointer;}
+  .line-chart-dot:hover{r:5;}
+  .mini-bar span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--text-faint);}
+
+  .habit-mini-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;}
+  .hcell{aspect-ratio:1;border-radius:3px;background:var(--border-soft);}
+
+  .goal-item{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--border-soft);}
+  .goal-item:last-child{border-bottom:none;}
+  .goal-top{display:flex;justify-content:space-between;font-size:12.5px;}
+  .progress-track{height:6px;border-radius:6px;background:var(--border-soft);overflow:hidden;}
+  .progress-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--teal),var(--violet));}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;}
+  .btn:hover{background:var(--surface-hover);}
+  .btn.primary{background:linear-gradient(135deg,var(--teal),var(--violet));color:#0B0D10;border:none;}
+  .btn.sm{padding:5px 10px;font-size:11.5px;}
+  .btn:disabled{opacity:.55;cursor:default;}
+  .btn svg{width:13px;height:13px;}
+  .seg{display:inline-flex;background:var(--surface-hover);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px;}
+  .seg button{border:none;background:transparent;font-size:12px;font-weight:600;color:var(--text-muted);padding:6px 12px;border-radius:7px;cursor:pointer;}
+  .seg button.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
+
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .filter-chip{font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;background:var(--surface);}
+  .filter-chip.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+
+  .kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .kcol-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:10px;padding:0 4px;}
+  .kcol-head .n{font-family:var(--font-mono);background:var(--surface-hover);padding:1px 7px;border-radius:20px;font-size:10.5px;}
+  .kcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);}
+  .kcard h4{font-size:13px;font-weight:600;margin-bottom:6px;}
+  .kcard-tags{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+  .tagchip{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface-hover);color:var(--text-muted);}
+  .kcard-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .kcard select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-muted);font-size:10.5px;border-radius:6px;padding:2px 4px;}
+
+  .heatmap-wrap{overflow-x:auto;}
+  .heatmap{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;padding-bottom:6px;}
+  .hm-cell{width:12px;height:12px;border-radius:3px;background:var(--border-soft);}
+  .habit-list-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border-soft);}
+  .habit-list-row:last-child{border-bottom:none;}
+  .habit-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface-hover);font-size:16px;}
+  .habit-meta{flex:1;min-width:120px;}
+  .habit-meta b{font-size:13px;display:block;}
+  .habit-meta span{font-size:11.5px;color:var(--text-muted);}
+  .streak-flame{display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--amber);white-space:nowrap;}
+  .week-dots{display:flex;gap:4px;}
+  .wdot{width:9px;height:9px;border-radius:3px;background:var(--border-soft);}
+  .wdot.on{background:linear-gradient(135deg,var(--teal),var(--violet));}
+
+  .balance-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+  .balance-num{font-family:var(--font-mono);font-size:34px;font-weight:600;}
+  .flow-legend{display:flex;gap:16px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;}
+  .legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+  .cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13px;}
+  .cat-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+  .cat-bar-track{flex:1;height:6px;background:var(--border-soft);border-radius:6px;overflow:hidden;}
+  .cat-bar-fill{height:100%;border-radius:6px;}
+  .cat-amt{font-family:var(--font-mono);font-size:12px;width:80px;text-align:right;color:var(--text-muted);}
+
+  .fit-tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .pr-card{display:flex;flex-direction:column;gap:4px;}
+  .pr-card b{font-family:var(--font-mono);font-size:20px;}
+  .pr-card span{font-size:11px;color:var(--text-muted);}
+
+  .goal-full{padding:16px;margin-bottom:12px;}
+  .goal-full-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:10px;}
+  .goal-full h4{font-size:14.5px;margin-bottom:4px;}
+  .goal-full .cat{font-size:11.5px;color:var(--text-muted);}
+  .goal-adjust{display:flex;gap:6px;margin-top:10px;align-items:center;}
+
+  .settings-row{display:flex;justify-content:space-between;align-items:center;padding:16px 4px;border-bottom:1px solid var(--border-soft);gap:14px;}
+  .settings-row:last-child{border-bottom:none;}
+  .settings-row b{font-size:13.5px;display:block;}
+  .settings-row span{font-size:12px;color:var(--text-muted);}
+  .switch{width:38px;height:22px;border-radius:20px;background:var(--border);position:relative;cursor:pointer;flex-shrink:0;}
+  .switch.on{background:linear-gradient(135deg,var(--teal),var(--violet));}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;}
+  .switch.on::after{left:18px;}
+
+  .empty-note{font-size:12px;color:var(--text-faint);text-align:center;padding:30px 10px;border:1px dashed var(--border);border-radius:10px;}
+
+  .cal-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .cal-head h3{font-size:16px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border-soft);border:1px solid var(--border-soft);border-radius:10px;overflow:hidden;}
+  .cal-weekday{background:var(--bg-elevated);text-align:center;font-size:10.5px;color:var(--text-faint);padding:8px 0;font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+  .cal-cell{background:var(--surface);min-height:86px;padding:7px;display:flex;flex-direction:column;gap:5px;}
+  .cal-cell.dim{background:var(--bg-elevated);opacity:.5;}
+  .cal-cell.today{background:var(--surface-hover);box-shadow:inset 0 0 0 1.5px var(--teal);}
+  .cal-cell .dnum{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);}
+  .cal-dot-row{display:flex;gap:3px;flex-wrap:wrap;}
+  .cal-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .cal-legend{display:flex;gap:16px;font-size:11.5px;color:var(--text-muted);margin-top:10px;flex-wrap:wrap;}
+
+  .book-cover{width:100%;aspect-ratio:3/4;border-radius:8px;margin-bottom:10px;}
+  .book-card h4{font-size:13px;margin-bottom:2px;}
+  .book-card .author{font-size:11.5px;color:var(--text-muted);margin-bottom:8px;}
+  .stars{color:var(--amber);font-size:12px;letter-spacing:1px;}
+  .lib-grid{grid-template-columns:repeat(5,1fr);}
+
+  .course-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--border-soft);}
+  .course-row:last-child{border-bottom:none;}
+  .course-plat{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface-hover);}
+  .course-info{flex:1;min-width:0;}
+  .course-info b{font-size:13px;display:block;}
+  .course-info span{font-size:11.5px;color:var(--text-muted);}
+  .course-progress{width:140px;flex-shrink:0;}
+
+  .notes-grid{grid-template-columns:repeat(3,1fr);}
+  .note-card h4{font-size:13.5px;margin-bottom:6px;}
+  .note-card p{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;}
+  .note-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-faint);}
+
+  .journal-entry{padding:16px 0;border-bottom:1px solid var(--border-soft);}
+  .journal-entry:last-child{border-bottom:none;}
+  .journal-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .journal-date{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);}
+  .mood-emoji{font-size:18px;}
+  .journal-text{font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:10px;}
+  .journal-tags{display:flex;gap:6px;flex-wrap:wrap;}
+
+  .water-track{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  .water-cup{flex:1;min-width:22px;height:34px;border-radius:8px;background:var(--border-soft);cursor:pointer;}
+  .water-cup.filled{background:linear-gradient(180deg,var(--teal),var(--violet));}
+
+  .file-card{display:flex;flex-direction:column;gap:10px;padding:14px;position:relative;}
+  .file-ic{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+  .file-card b{font-size:12.5px;display:block;word-break:break-word;}
+  .file-card span{font-size:11px;color:var(--text-faint);}
+  .files-grid{grid-template-columns:repeat(4,1fr);}
+
+  .xp-hero{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .xp-ring{width:70px;height:70px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .xp-ring-inner{width:54px;height:54px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:600;font-size:13px;}
+  .xp-bar-track{height:10px;border-radius:10px;background:var(--border-soft);overflow:hidden;margin-top:8px;}
+  .xp-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--amber),var(--rose));}
+  .badges-grid{grid-template-columns:repeat(5,1fr);}
+  .badge-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:18px 10px;}
+  .badge-ic{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--teal),var(--violet));font-size:22px;}
+  .badge-ic.locked{background:var(--surface-hover);opacity:.45;}
+  .badge-card b{font-size:12px;}
+  .badge-card span{font-size:10.5px;color:var(--text-muted);}
+  .rank-row{display:flex;align-items:center;gap:12px;padding:9px 0;font-size:13px;}
+  .rank-num{font-family:var(--font-mono);width:22px;color:var(--text-faint);font-size:12px;}
+
+  .chat-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;max-height:420px;overflow-y:auto;padding-right:4px;}
+  .chat-msg{max-width:82%;padding:11px 14px;border-radius:12px;font-size:13px;line-height:1.55;white-space:pre-wrap;}
+  .chat-msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--teal),var(--violet));color:#0B0D10;border-bottom-right-radius:3px;font-weight:500;}
+  .chat-msg.ai{align-self:flex-start;background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:3px;}
+  .chat-input-row{display:flex;gap:8px;}
+  .chat-input{flex:1;display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 12px;font-size:12.5px;}
+  .chat-input input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:13px;}
+  .ai-suggestion{display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid var(--border);border-radius:9px;font-size:12.5px;margin-bottom:8px;cursor:pointer;background:var(--surface);}
+  .ai-suggestion:hover{background:var(--surface-hover);}
+  .ai-suggestion svg{width:15px;height:15px;color:var(--teal);flex-shrink:0;}
+  .ai-note{font-size:11px;color:var(--text-faint);margin-top:10px;line-height:1.5;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(6,7,9,.6);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding-top:10vh;z-index:200;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{width:520px;max-width:92vw;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 20px 60px -12px rgba(0,0,0,.6);overflow:hidden;max-height:76vh;display:flex;flex-direction:column;}
+  .modal-search-input{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--border-soft);font-size:14px;color:var(--text-faint);}
+  .modal-search-input svg{width:16px;height:16px;flex-shrink:0;}
+  .modal-search-input input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:14px;}
+  .modal-results{overflow-y:auto;padding:8px;}
+  .modal-group-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);padding:10px 10px 4px;}
+  .modal-result-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;cursor:pointer;}
+  .modal-result-row:hover{background:var(--surface-hover);}
+  .modal-result-row svg{width:15px;height:15px;color:var(--text-muted);flex-shrink:0;}
+  .modal-result-row .rtype{margin-left:auto;font-size:10.5px;color:var(--text-faint);font-family:var(--font-mono);}
+  .modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--border-soft);}
+
+  .form-title{font-family:var(--font-display);font-weight:600;font-size:15px;padding:16px 16px 0;}
+  .form-body{padding:14px 16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;}
+  .form-field{display:flex;flex-direction:column;gap:5px;}
+  .form-field label{font-size:11.5px;color:var(--text-muted);font-weight:600;}
+  .form-field input,.form-field select,.form-field textarea{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:13px;color:var(--text);width:100%;outline:none;}
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--teal);}
+  .form-field textarea{resize:vertical;min-height:64px;font-family:inherit;}
+  .form-error{font-size:12px;color:var(--rose);padding:0 16px;min-height:16px;}
+
+  .toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);padding:11px 16px;border-radius:10px;font-size:12.5px;display:flex;align-items:center;gap:8px;z-index:300;opacity:0;transform:translateY(8px);transition:.25s ease;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast svg{width:14px;height:14px;color:var(--teal);}
+  .toast.error svg{color:var(--rose);}
+
+  /* Tela de autenticação */
+  .auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px;}
+  .auth-box{width:380px;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:32px;}
+  .auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+  .auth-title{font-family:var(--font-display);font-size:20px;font-weight:600;margin-bottom:4px;}
+  .auth-sub{font-size:12.5px;color:var(--text-muted);margin-bottom:22px;}
+  .auth-tabs{display:flex;gap:4px;background:var(--surface-hover);border:1px solid var(--border);border-radius:9px;padding:3px;margin-bottom:20px;}
+  .auth-tabs button{flex:1;border:none;background:transparent;padding:8px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--text-muted);cursor:pointer;}
+  .auth-tabs button.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
+  .auth-form{display:flex;flex-direction:column;gap:12px;}
+  .auth-field label{font-size:11.5px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:5px;}
+  .auth-field input{width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13.5px;color:var(--text);outline:none;}
+  .auth-field input:focus{border-color:var(--teal);}
+  .auth-error{font-size:12px;color:var(--rose);min-height:16px;}
+  .auth-hint{font-size:11px;color:var(--text-faint);margin-top:16px;line-height:1.6;text-align:center;}
+  .app-hidden{display:none !important;}
+
+  @media(max-width:980px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{display:none;}
+    .stat-grid,.bento,.bento-row2,.kanban,.lib-grid,.notes-grid,.files-grid,.badges-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ TELA DE LOGIN / CADASTRO ============ -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <div class="auth-brand"><div class="brand-mark"></div><div class="brand-name" style="font-family:var(--font-display);font-weight:600;font-size:17px;">LifeFlow</div></div>
+    <div class="auth-title" id="authTitle">Entrar</div>
+    <div class="auth-sub" id="authSub">Acesse sua conta para continuar</div>
+    <div class="auth-tabs">
+      <button class="active" id="tabLogin">Entrar</button>
+      <button id="tabRegister">Criar conta</button>
+    </div>
+    <form class="auth-form" id="authForm">
+      <div class="auth-field" id="fieldName" style="display:none;">
+        <label>Nome</label>
+        <input type="text" id="authName" placeholder="Seu nome" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label>E-mail</label>
+        <input type="email" id="authEmail" placeholder="voce@exemplo.com" autocomplete="username" required>
+      </div>
+      <div class="auth-field">
+        <label>Senha</label>
+        <input type="password" id="authPassword" placeholder="Mínimo 8 caracteres" autocomplete="current-password" required>
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <button class="btn primary" type="submit" id="authSubmit" style="justify-content:center;">Entrar</button>
+    </form>
+    <div class="auth-hint">A API precisa estar configurada em <code>API_BASE</code> no início do &lt;script&gt;. Veja o README do backend para instruções de deploy.</div>
+  </div>
+</div>
+
+<div class="app app-hidden" id="appRoot">
+
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark"></div><div class="brand-name">LifeFlow</div></div>
+    <div class="storage-pill" id="storageStatus"><span class="storage-dot"></span><span>conectando à API…</span></div>
+
+    <nav class="nav-group">
+      <div class="nav-label">Visão geral</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </div>
+    </nav>
+
+    <nav class="nav-group">
+      <div class="nav-label">Planejar</div>
+      <div class="nav-item" data-page="projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l2-3h6l2 3h8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>Projetos <span class="nav-badge" id="badgeProjects">0</span></div>
+      <div class="nav-item" data-page="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tarefas <span class="nav-badge" id="badgeTasks">0</span></div>
+      <div class="nav-item" data-page="goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Metas</div>
+    </nav>
+
+    <nav class="nav-group">
+      <div class="nav-label">Conhecimento</div>
+      <div class="nav-item" data-page="journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Diário</div>
+      <div class="nav-item" data-page="secondbrain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 0-2.5-2.5H3v-15z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 1 2.5-2.5H21v-15z"/></svg>Second Brain</div>
+      <div class="nav-item" data-page="reading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg>Leituras</div>
+      <div class="nav-item" data-page="courses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>Cursos</div>
+    </nav>
+
+    <nav class="nav-group">
+      <div class="nav-label">Bem-estar</div>
+      <div class="nav-item" data-page="habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg>Hábitos</div>
+      <div class="nav-item" data-page="fitness"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.5 6.5l11 11M4 4l3 3M20 17l3 3M17 4l3 3M4 20l3-3M2 8l3-3M16 22l3-3M8 2l3 3"/></svg>Treinos &amp; corrida</div>
+      <div class="nav-item" data-page="sleep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Sono</div>
+      <div class="nav-item" data-page="nutrition"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8c0 5-3 9-6 12-3-3-6-7-6-12a6 6 0 0 1 12 0z"/><path d="M12 2v6"/></svg>Nutrição &amp; corpo</div>
+    </nav>
+
+    <nav class="nav-group">
+      <div class="nav-label">Financeiro</div>
+      <div class="nav-item" data-page="finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>Finanças</div>
+    </nav>
+
+    <nav class="nav-group">
+      <div class="nav-label">Sistema</div>
+      <div class="nav-item" data-page="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendário</div>
+      <div class="nav-item" data-page="files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Arquivos</div>
+      <div class="nav-item" data-page="achievements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="6"/><path d="M8.5 13.5 7 22l5-3 5 3-1.5-8.5"/></svg>Conquistas</div>
+      <div class="nav-item" data-page="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M9 13h.01M15 13h.01M9 3v4M15 3v4"/></svg>Assistente IA</div>
+      <div class="nav-item" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações</div>
+    </nav>
+
+    <div class="sidebar-foot" id="logoutBtn" title="Clique para sair">
+      <div class="avatar"></div>
+      <div class="who"><b id="sidebarEmail">carregando…</b><span id="sidebarStreak">—</span></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text-faint);"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">Dashboard</div>
+        <div class="page-sub" id="pageSub">—</div>
+      </div>
+      <div class="search-pill" id="openSearch">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        Pesquisar em tudo…
+        <kbd>⌘K</kbd>
+      </div>
+      <div class="icon-btn" id="themeToggle" title="Alternar tema">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </div>
+    </div>
+    <div class="flow-ribbon"><div class="flow-ribbon-fill" id="flowFill" style="width:0%"></div></div>
+
+    <div class="content">
+
+      <section class="page active" id="dashboard">
+        <div class="hero">
+          <div><h1 id="greeting">Olá 👋</h1><p id="heroSub">Carregando seu dia…</p></div>
+          <div class="hero-stats" id="heroStats"></div>
+        </div>
+        <div class="grid stat-grid" id="statGrid"></div>
+        <div class="grid bento">
+          <div class="card">
+            <div class="section-title">Tarefas de hoje <span class="tag" id="tagTasksToday">0 itens</span></div>
+            <div id="dashTasks"></div>
+          </div>
+          <div class="card">
+            <div class="section-title">Produtividade semanal</div>
+            <div class="mini-bar-chart" id="prodChart"></div>
+          </div>
+        </div>
+        <div class="grid bento-row2">
+          <div class="card"><div class="section-title">Hábitos · últimos 14 dias</div><div class="habit-mini-grid" id="miniHeat"></div></div>
+          <div class="card"><div class="section-title">Metas em progresso</div><div id="dashGoals"></div></div>
+          <div class="card">
+            <div class="section-title">Saldo &amp; sono</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <div><div class="stat-val" style="font-size:18px" id="dashBalance">R$ 0</div><span class="stat-label">saldo atual</span></div>
+              <div style="text-align:right;"><div class="stat-val" style="font-size:18px" id="dashSleep">0h</div><span class="stat-label">média de sono (7d)</span></div>
+            </div>
+            <div class="week-dots" id="dashWeekDots" style="justify-content:space-between;"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="projects">
+        <div class="toolbar">
+          <div class="filter-chip active" data-projfilter="todos">Todos</div>
+          <div class="filter-chip" data-projfilter="andamento">Em andamento</div>
+          <div class="filter-chip" data-projfilter="pausado">Pausados</div>
+          <button class="btn primary" id="btnNewProject" style="margin-left:auto;">+ Novo projeto</button>
+        </div>
+        <div class="kanban" id="kanbanBoard"></div>
+      </section>
+
+      <section class="page" id="tasks">
+        <div class="toolbar">
+          <div class="filter-chip active" data-taskfilter="hoje">Hoje</div>
+          <div class="filter-chip" data-taskfilter="amanha">Amanhã</div>
+          <div class="filter-chip" data-taskfilter="semana">Semana</div>
+          <div class="filter-chip" data-taskfilter="atrasadas">Atrasadas</div>
+          <div class="filter-chip" data-taskfilter="concluidas">Concluídas</div>
+          <div class="filter-chip" data-taskfilter="todas">Todas</div>
+          <button class="btn primary" id="btnNewTask" style="margin-left:auto;">+ Nova tarefa</button>
+        </div>
+        <div class="card"><div id="taskList"></div></div>
+      </section>
+
+      <section class="page" id="goals">
+        <div class="toolbar"><button class="btn primary" id="btnNewGoal" style="margin-left:auto;">+ Nova meta</button></div>
+        <div id="goalList"></div>
+      </section>
+
+      <section class="page" id="journal">
+        <div class="toolbar"><button class="btn primary" id="btnNewJournal" style="margin-left:auto;">+ Novo registro</button></div>
+        <div class="grid bento">
+          <div class="card"><div class="section-title">Registros recentes</div><div id="journalList"></div></div>
+          <div class="card"><div class="section-title">Humor da semana</div><div class="mini-bar-chart" id="moodChart"></div></div>
+        </div>
+      </section>
+
+      <section class="page" id="secondbrain">
+        <div class="toolbar">
+          <div class="search-pill" style="min-width:280px;cursor:text;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="noteSearch" placeholder="Pesquisar notas…" style="background:transparent;border:none;outline:none;color:var(--text);flex:1;font-size:12.5px;"></div>
+          <button class="btn primary" id="btnNewNote" style="margin-left:auto;">+ Nova página</button>
+        </div>
+        <div class="grid notes-grid" id="notesGrid"></div>
+      </section>
+
+      <section class="page" id="reading">
+        <div class="toolbar"><button class="btn primary" id="btnNewBook" style="margin-left:auto;">+ Novo livro</button></div>
+        <div class="grid stat-grid" id="readingStats" style="margin-bottom:14px;"></div>
+        <div class="grid lib-grid" id="booksGrid"></div>
+      </section>
+
+      <section class="page" id="courses">
+        <div class="toolbar"><button class="btn primary" id="btnNewCourse" style="margin-left:auto;">+ Novo curso</button></div>
+        <div class="card"><div id="coursesList"></div></div>
+      </section>
+
+      <section class="page" id="habits">
+        <div class="card" style="margin-bottom:14px;">
+          <div class="section-title">Mapa de consistência <span class="tag">últimos 90 dias</span></div>
+          <div class="heatmap-wrap"><div class="heatmap" id="fullHeat"></div></div>
+          <div style="display:flex;justify-content:flex-end;gap:6px;align-items:center;margin-top:8px;font-size:11px;color:var(--text-muted)">menos <div class="wdot"></div><div class="wdot" style="background:rgba(79,216,196,.4)"></div><div class="wdot" style="background:linear-gradient(135deg,var(--teal),var(--violet))"></div> mais</div>
+        </div>
+        <div class="card">
+          <div class="section-title">Hábitos de hoje <button class="btn sm" id="btnNewHabit" style="margin-left:auto;">+ Novo hábito</button></div>
+          <div id="habitList"></div>
+        </div>
+      </section>
+
+      <section class="page" id="fitness">
+        <div class="toolbar">
+          <button class="btn primary" id="btnNewWorkout">+ Registrar treino</button>
+          <button class="btn primary" id="btnNewRun">+ Registrar corrida</button>
+        </div>
+        <div class="grid stat-grid" id="fitnessStats" style="margin-bottom:14px;"></div>
+        <div class="grid bento">
+          <div class="card"><div class="section-title">Evolução de carga <span class="tag">exercício de referência</span></div><div id="loadChart"></div></div>
+          <div class="card"><div class="section-title">Evolução de corrida <span class="tag">pace (min/km)</span></div><div id="runChart"></div></div>
+        </div>
+        <div class="grid bento">
+          <div class="card"><div class="section-title">Treinos recentes</div><div id="workoutList"></div></div>
+          <div class="card"><div class="section-title">Corridas recentes</div><div id="runList"></div></div>
+        </div>
+      </section>
+
+      <section class="page" id="sleep">
+        <div class="toolbar"><button class="btn primary" id="btnNewSleep" style="margin-left:auto;">+ Registrar noite</button></div>
+        <div class="grid stat-grid" id="sleepStats" style="margin-bottom:14px;"></div>
+        <div class="card"><div class="section-title">Últimos 7 dias</div><div class="mini-bar-chart" id="sleepChart"></div></div>
+      </section>
+
+      <section class="page" id="nutrition">
+        <div class="grid bento" style="margin-bottom:14px;">
+          <div class="card">
+            <div class="section-title">Alimentação de hoje <span class="tag" id="calToday">0 / 2400 kcal</span> <button class="btn sm" id="btnNewMeal" style="margin-left:auto;">+ Refeição</button></div>
+            <div id="mealList"></div>
+            <div class="progress-track" style="margin-top:12px;"><div class="progress-fill" id="calBar" style="width:0%"></div></div>
+          </div>
+          <div class="card">
+            <div class="section-title">Hidratação <span class="tag" id="waterTag">0 / 8 copos</span></div>
+            <div class="water-track" id="waterTrack"></div>
+            <p style="font-size:11.5px;color:var(--text-muted);margin-top:10px;">clique em um copo para marcar até ele</p>
+            <div class="section-title" style="margin-top:22px;">Peso corporal <button class="btn sm" id="btnNewWeight" style="margin-left:auto;">+ Registrar</button></div>
+            <div id="weightStats" style="display:flex;justify-content:space-between;align-items:center;"></div>
+            <div id="weightChart" style="margin-top:14px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="finance">
+        <div class="grid bento" style="margin-bottom:14px;">
+          <div class="card">
+            <div class="section-title">Saldo atual <button class="btn sm primary" id="btnNewTransaction" style="margin-left:auto;">+ Transação</button></div>
+            <div class="balance-hero"><div class="balance-num" id="balanceNum">R$ 0</div><div class="flow-legend" id="balanceLegend"></div></div>
+            <div class="mini-bar-chart" id="financeChart" style="margin-top:20px;"></div>
+          </div>
+          <div class="card"><div class="section-title">Gastos por categoria</div><div id="catBreakdown"></div></div>
+        </div>
+        <div class="card"><div class="section-title">Transações recentes</div><div id="transactionList"></div></div>
+      </section>
+
+      <section class="page" id="calendar">
+        <div class="card">
+          <div class="cal-head">
+            <div class="icon-btn" id="calPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></div>
+            <h3 id="calMonthLabel">—</h3>
+            <div class="icon-btn" id="calNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></div>
+            <button class="btn primary" id="btnNewEvent" style="margin-left:auto;">+ Novo evento</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-legend">
+            <span><span class="legend-dot" style="background:var(--teal)"></span>Tarefas</span>
+            <span><span class="legend-dot" style="background:var(--violet)"></span>Hábitos concluídos</span>
+            <span><span class="legend-dot" style="background:var(--amber)"></span>Treinos &amp; corridas</span>
+            <span><span class="legend-dot" style="background:var(--rose)"></span>Registros de diário</span>
+            <span><span class="legend-dot" style="background:#6C8CFF"></span>Eventos</span>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px;">
+          <div class="section-title">Próximos eventos</div>
+          <div id="eventList"></div>
+        </div>
+      </section>
+
+      <section class="page" id="files">
+        <div class="toolbar"><button class="btn primary" id="btnNewFile" style="margin-left:auto;">+ Adicionar arquivo</button></div>
+        <div class="grid files-grid" id="filesGrid"></div>
+      </section>
+
+      <section class="page" id="achievements">
+        <div class="card" style="margin-bottom:14px;">
+          <div class="xp-hero">
+            <div class="xp-ring" id="xpRing"><div class="xp-ring-inner" id="xpLevelLabel">Lv 1</div></div>
+            <div style="flex:1;min-width:200px;">
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:2px;"><b id="xpLabel">0 XP</b><span style="color:var(--text-muted)" id="xpNext">—</span></div>
+              <div class="xp-bar-track"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px;"><div class="section-title">Medalhas</div><div class="grid badges-grid" id="badgesGrid"></div></div>
+        <div class="card"><div class="section-title">Ranking pessoal · streaks de hábitos</div><div id="streakRanking"></div></div>
+      </section>
+
+      <section class="page" id="ai">
+        <div class="grid bento">
+          <div class="card">
+            <div class="section-title">Assistente LifeFlow</div>
+            <div class="chat-wrap" id="chatWrap"></div>
+            <div class="chat-input-row">
+              <div class="chat-input"><input id="chatInput" placeholder="Pergunte algo sobre seus dados…"></div>
+              <button class="btn primary" id="chatSend">Enviar</button>
+            </div>
+            <div class="ai-note">Este recurso chama a API da Anthropic a partir de um endpoint do seu próprio backend (recomendado), nunca direto do navegador — assim sua chave de API não fica exposta. Veja a seção "Assistente IA" do README do backend.</div>
+          </div>
+          <div class="card">
+            <div class="section-title">Sugestões rápidas</div>
+            <div class="ai-suggestion" data-prompt="Resuma minha semana com base nos meus dados.">Resumir a semana</div>
+            <div class="ai-suggestion" data-prompt="Analise meus hábitos e streaks, e me diga onde estou mais inconsistente.">Analisar meus hábitos</div>
+            <div class="ai-suggestion" data-prompt="Com base no meu histórico de treinos, monte uma sugestão de plano para a próxima semana.">Montar plano de treino</div>
+            <div class="ai-suggestion" data-prompt="Olhando minhas finanças, me dê 3 sugestões práticas para melhorar meu saldo.">Sugestões financeiras</div>
+            <div class="ai-suggestion" data-prompt="Quais das minhas metas estão com progresso mais atrasado em relação ao tempo restante?">Progresso das metas</div>
+            <div class="ai-suggestion" data-prompt="Baseado nas minhas tarefas e prazos, quais devo priorizar essa semana?">Sugerir prioridades</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="settings">
+        <div class="card" style="margin-bottom:14px;">
+          <div class="section-title">Conta</div>
+          <div class="settings-row"><div><b>E-mail</b><span id="settingsEmail">—</span></div></div>
+          <div class="settings-row"><div><b>Sair da conta</b><span>Encerra a sessão neste dispositivo</span></div><button class="btn" id="btnLogoutSettings">Sair</button></div>
+        </div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="section-title">Aparência</div>
+          <div class="settings-row"><div><b>Tema escuro</b><span>Alternar entre tema claro e escuro</span></div><div class="switch on" id="settingsThemeSwitch"></div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="section-title">Notificações (preferências salvas na conta)</div>
+          <div class="settings-row"><div><b>Lembretes de hábitos</b><span>Receber notificações diárias</span></div><div class="switch" id="notifHabits"></div></div>
+          <div class="settings-row"><div><b>Lembretes de treino</b><span>30 min antes do horário programado</span></div><div class="switch" id="notifTreino"></div></div>
+          <div class="settings-row"><div><b>Resumo semanal</b><span>Enviado todo domingo à noite</span></div><div class="switch" id="notifResumo"></div></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Dados</div>
+          <div class="settings-row"><div><b>Exportar backup completo (JSON)</b><span>Baixa todos os seus dados do LifeFlow</span></div><button class="btn" id="btnExportJson">Exportar</button></div>
+          <div class="settings-row"><div><b>Exportar tarefas (CSV)</b><span>Planilha com todas as tarefas cadastradas</span></div><button class="btn" id="btnExportCsv">Exportar</button></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="formModalOverlay">
+  <div class="modal-box">
+    <div class="form-title" id="formModalTitle">Novo item</div>
+    <div class="form-body" id="formModalBody"></div>
+    <div class="form-error" id="formModalError"></div>
+    <div class="modal-foot">
+      <button class="btn" id="formModalCancel" type="button">Cancelar</button>
+      <button class="btn primary" id="formModalSave" type="button">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="searchModalOverlay">
+  <div class="modal-box">
+    <div class="modal-search-input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="globalSearchInput" placeholder="Pesquisar em tudo…" autocomplete="off"></div>
+    <div class="modal-results" id="globalSearchResults"></div>
+    <div class="modal-foot" style="justify-content:space-between;"><span style="font-size:11px;color:var(--text-faint);">Esc para fechar</span><span style="font-size:11px;color:var(--text-faint);" id="searchCount">0 resultados</span></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirmModalOverlay">
+  <div class="modal-box" style="width:380px;">
+    <div class="form-title" id="confirmModalTitle">Confirmar</div>
+    <div class="form-body"><p id="confirmModalMessage" style="font-size:13px;color:var(--text-muted);line-height:1.5;margin:0;"></p></div>
+    <div class="modal-foot">
+      <button class="btn" id="confirmModalCancel" type="button">Cancelar</button>
+      <button class="btn primary" id="confirmModalOk" type="button" style="background:linear-gradient(135deg,var(--rose),var(--amber));">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="chart-tooltip" id="chartTooltip"></div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg><span id="toastMsg">Salvo</span></div>
+
+<script>
+/* =========================================================
+   LIFEFLOW — camada de dados conectada à API real (NestJS + Prisma + PostgreSQL)
+   ========================================================= */
+
+// Aponte para a URL pública da sua API (veja o README do backend).
+const API_BASE = 'https://lifeflow-zbhq.onrender.com';
+
+let authToken = localStorage.getItem('lifeflow_token');
+let currentUser = JSON.parse(localStorage.getItem('lifeflow_user') || 'null');
+let DB = null;
+let saveTimer = null;
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function todayStr(){ return fmt(new Date()); }
+function fmt(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function addDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return fmt(d); }
+function parseDate(s){ const iso = String(s).slice(0,10); const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }
+function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function brl(n){ return (n<0?'-':'') + 'R$ ' + Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+/* =========================================================
+   CLIENTE HTTP + AUTENTICAÇÃO
+   ========================================================= */
+async function api(path, options={}){
+  const res = await fetch(API_BASE + path, {
+    ...options,
+    headers: {
+      'Content-Type':'application/json',
+      ...(authToken ? {Authorization:`Bearer ${authToken}`} : {}),
+      ...(options.headers||{}),
+    },
+  });
+  if(res.status === 401){ logout(); throw new Error('Sessão expirada, faça login novamente.'); }
+  let data = null;
+  try{ data = await res.json(); }catch(e){ /* corpo vazio, ok em DELETE */ }
+  if(!res.ok){
+    const msg = Array.isArray(data?.message) ? data.message.join(', ') : (data?.message || 'Erro na requisição');
+    throw new Error(msg);
+  }
+  return data;
+}
+
+function setAuth(token, user){
+  authToken = token; currentUser = user;
+  localStorage.setItem('lifeflow_token', token);
+  localStorage.setItem('lifeflow_user', JSON.stringify(user));
+}
+function logout(){
+  authToken = null; currentUser = null; DB = null;
+  localStorage.removeItem('lifeflow_token');
+  localStorage.removeItem('lifeflow_user');
+  document.getElementById('appRoot').classList.add('app-hidden');
+  document.getElementById('authScreen').style.display = 'flex';
+}
+
+/* ---------- Formulário de login/cadastro ---------- */
+let authMode = 'login';
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode==='login');
+  document.getElementById('tabRegister').classList.toggle('active', mode==='register');
+  document.getElementById('fieldName').style.display = mode==='register' ? 'block' : 'none';
+  document.getElementById('authTitle').textContent = mode==='login' ? 'Entrar' : 'Criar conta';
+  document.getElementById('authSub').textContent = mode==='login' ? 'Acesse sua conta para continuar' : 'Leva menos de um minuto';
+  document.getElementById('authSubmit').textContent = mode==='login' ? 'Entrar' : 'Criar conta';
+  document.getElementById('authError').textContent = '';
+}
+document.getElementById('tabLogin').addEventListener('click', ()=>setAuthMode('login'));
+document.getElementById('tabRegister').addEventListener('click', ()=>setAuthMode('register'));
+
+document.getElementById('authForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName').value.trim();
+  const errEl = document.getElementById('authError');
+  const submitBtn = document.getElementById('authSubmit');
+  errEl.textContent = '';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Aguarde…';
+  try{
+    const path = authMode === 'login' ? '/auth/login' : '/auth/register';
+    const body = authMode === 'login' ? {email, password} : {email, password, name};
+    const data = await api(path, {method:'POST', body: JSON.stringify(body)});
+    setAuth(data.accessToken, data.user);
+    await boot();
+  }catch(err){
+    errEl.textContent = err.message || 'Não foi possível conectar à API. Confira o API_BASE e se o backend está no ar.';
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = authMode==='login' ? 'Entrar' : 'Criar conta';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=> confirmAction('Sair da conta?','Você vai precisar entrar de novo com seu e-mail e senha.', logout));
+document.getElementById('btnLogoutSettings').addEventListener('click', ()=> confirmAction('Sair da conta?','Você vai precisar entrar de novo com seu e-mail e senha.', logout));
+
+/* =========================================================
+   REPOSITÓRIO GENÉRICO — agora fala com a API em vez de storage local
+   ========================================================= */
+function makeRepo(resource, localKey){
+  const key = localKey || resource;
+  return {
+    list: () => DB[key],
+    add: async (item) => {
+      try{
+        const saved = await api(`/${resource}`, {method:'POST', body: JSON.stringify(item)});
+        DB[key].unshift(saved);
+        renderAll();
+        showToast('Adicionado com sucesso');
+        return saved;
+      }catch(err){ showToast(err.message, true); }
+    },
+    update: async (id, patch) => {
+      try{
+        const saved = await api(`/${resource}/${id}`, {method:'PATCH', body: JSON.stringify(patch)});
+        const idx = DB[key].findIndex(i=>i.id===id);
+        if(idx>-1) DB[key][idx] = saved;
+        renderAll();
+      }catch(err){ showToast(err.message, true); }
+    },
+    remove: async (id) => {
+      try{
+        await api(`/${resource}/${id}`, {method:'DELETE'});
+        DB[key] = DB[key].filter(i=>i.id!==id);
+        renderAll();
+        showToast('Removido');
+      }catch(err){ showToast(err.message, true); }
+    },
+  };
+}
+const Tasks = makeRepo('tasks');
+const Projects = makeRepo('projects');
+const Goals = makeRepo('goals');
+const Transactions = makeRepo('transactions');
+const Journal = makeRepo('journal');
+const Notes = makeRepo('notes');
+const Books = makeRepo('books');
+const Courses = makeRepo('courses');
+const Workouts = makeRepo('workouts');
+const Runs = makeRepo('runs');
+const Meals = makeRepo('meals');
+const Files = makeRepo('files');
+const CalendarEvents = makeRepo('calendar-events', 'calendarEvents');
+
+// Hábitos têm endpoints especiais (toggle + streak) além do CRUD básico.
+const Habits = {
+  list: () => DB.habits,
+  add: async (item) => {
+    try{
+      const saved = await api('/habits', {method:'POST', body: JSON.stringify(item)});
+      DB.habits.unshift(saved); renderAll(); showToast('Hábito criado');
+    }catch(err){ showToast(err.message, true); }
+  },
+  remove: async (id) => {
+    try{
+      await api(`/habits/${id}`, {method:'DELETE'});
+      DB.habits = DB.habits.filter(h=>h.id!==id);
+      DB.habitLogs = DB.habitLogs.filter(l=>l.habitId!==id);
+      renderAll();
+    }catch(err){ showToast(err.message, true); }
+  },
+  update: async (id, patch) => {
+    try{
+      const saved = await api(`/habits/${id}`, {method:'PATCH', body: JSON.stringify(patch)});
+      const idx = DB.habits.findIndex(h=>h.id===id);
+      if(idx>-1) DB.habits[idx] = {...DB.habits[idx], ...saved};
+      renderAll();
+    }catch(err){ showToast(err.message, true); }
+  },
+  toggleToday: async (id) => Habits.toggleDate(id, todayStr()),
+  toggleDate: async (id, date) => {
+    try{
+      const res = await api(`/habits/${id}/toggle?date=${date}`, {method:'POST'});
+      if(res.toggled){ DB.habitLogs.push({habitId:id, date}); }
+      else{ DB.habitLogs = DB.habitLogs.filter(l=>!(l.habitId===id && l.date===date)); }
+      try{ DB.goals = await api('/goals'); }catch(e){ /* segue com o valor antigo se falhar */ }
+      renderAll();
+    }catch(err){ showToast(err.message, true); }
+  },
+};
+
+// Sono, peso e água usam upsert por data (um único POST idempotente por dia).
+const SleepLogs = {
+  list: () => DB.sleepLogs,
+  upsert: async (payload) => {
+    try{
+      const saved = await api('/sleep-logs', {method:'POST', body: JSON.stringify(payload)});
+      DB.sleepLogs = DB.sleepLogs.filter(l=>l.date!==payload.date);
+      DB.sleepLogs.unshift(saved);
+      renderAll();
+    }catch(err){ showToast(err.message, true); }
+  },
+};
+const WeightLogs = {
+  list: () => DB.weight,
+  upsert: async (payload) => {
+    try{
+      const saved = await api('/weight-logs', {method:'POST', body: JSON.stringify(payload)});
+      DB.weight = DB.weight.filter(l=>l.date!==payload.date);
+      DB.weight.push(saved);
+      renderAll();
+    }catch(err){ showToast(err.message, true); }
+  },
+};
+const Water = {
+  setToday: async (cups) => {
+    try{
+      await api('/water', {method:'POST', body: JSON.stringify({date: todayStr(), cups})});
+      DB.water[todayStr()] = cups;
+      renderAll();
+    }catch(err){ showToast(err.message, true); }
+  },
+};
+
+/* =========================================================
+   BOOT — carrega tudo da API de uma vez (/me/all)
+   ========================================================= */
+async function boot(){
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appRoot').classList.remove('app-hidden');
+  try{
+    DB = await api('/me/all');
+    setStorageStatus(true);
+    document.getElementById('sidebarEmail').textContent = currentUser?.email || '—';
+    document.getElementById('settingsEmail').textContent = currentUser?.email || '—';
+    document.documentElement.setAttribute('data-theme', DB.settings?.theme || 'dark');
+    renderAll();
+  }catch(err){
+    setStorageStatus(false);
+    showToast('Não foi possível carregar seus dados: ' + err.message, true);
+  }
+}
+
+function setStorageStatus(ok){
+  const el = document.getElementById('storageStatus');
+  el.innerHTML = ok
+    ? '<span class="storage-dot"></span><span>Conectado à API · dados salvos no banco</span>'
+    : '<span class="storage-dot off"></span><span>Sem conexão com a API</span>';
+}
+
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.classList.toggle('error', !!isError);
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// Gráfico de linha genérico em SVG, com tooltip por ponto (reaproveitado em
+// carga de treino, corrida e evolução corporal). points: [{value, tooltip}]
+function lineChartSVG(points, {color='var(--teal)'}={}){
+  if(points.length < 2) return '<div class="empty-note">Registre pelo menos 2 pontos para ver a evolução aqui.</div>';
+  const w = 600, h = 110, padY = 12;
+  const values = points.map(p=>p.value);
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max - min) || 1;
+  const stepX = w / (points.length - 1);
+  const coords = points.map((p,i)=>({
+    x: i*stepX,
+    y: h - ((p.value - min)/range) * (h - padY*2) - padY,
+    tooltip: p.tooltip,
+  }));
+  const path = coords.map((c,i)=> (i===0?'M':'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
+  const areaPath = `${path} L${coords[coords.length-1].x.toFixed(1)},${h} L${coords[0].x.toFixed(1)},${h} Z`;
+  const dots = coords.map(c=>`<circle class="line-chart-dot" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3.5" fill="${color}" data-tooltip="${escapeHtml(c.tooltip)}"></circle>`).join('');
+  return `<div class="line-chart-wrap" style="height:130px;"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <path d="${areaPath}" fill="${color}" opacity="0.12" stroke="none"></path>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2.5"></path>
+    ${dots}
+  </svg></div>`;
+}
+
+// Confirmação genérica — usada antes de qualquer exclusão ou do logout.
+// confirmAction('Excluir tarefa?', 'Essa ação não pode ser desfeita.', () => Tasks.remove(id))
+function confirmAction(title, message, onConfirm){
+  document.getElementById('confirmModalTitle').textContent = title;
+  document.getElementById('confirmModalMessage').textContent = message;
+  const overlay = document.getElementById('confirmModalOverlay');
+  overlay.classList.add('open');
+  const okBtn = document.getElementById('confirmModalOk');
+  const cancelBtn = document.getElementById('confirmModalCancel');
+  function close(){ overlay.classList.remove('open'); okBtn.onclick=null; cancelBtn.onclick=null; }
+  cancelBtn.onclick = close;
+  okBtn.onclick = () => { close(); onConfirm(); };
+}
+
+// Tooltip genérico para gráficos: qualquer elemento com atributo data-tooltip
+// (mini-bar, ponto de linha, etc.) mostra o conteúdo ao passar o mouse.
+// Um único listener por delegação cobre todos os gráficos, presentes ou futuros.
+const chartTooltipEl = document.getElementById('chartTooltip');
+document.addEventListener('mousemove', (e)=>{
+  const target = e.target.closest('[data-tooltip]');
+  if(!target){ chartTooltipEl.classList.remove('show'); return; }
+  chartTooltipEl.innerHTML = target.dataset.tooltip;
+  chartTooltipEl.classList.add('show');
+  const pad = 14;
+  let x = e.clientX + pad, y = e.clientY + pad;
+  const rect = chartTooltipEl.getBoundingClientRect();
+  if(x + rect.width > window.innerWidth - 10) x = e.clientX - rect.width - pad;
+  if(y + rect.height > window.innerHeight - 10) y = e.clientY - rect.height - pad;
+  chartTooltipEl.style.left = x + 'px';
+  chartTooltipEl.style.top = y + 'px';
+});
+document.addEventListener('mouseleave', ()=> chartTooltipEl.classList.remove('show'));
+
+// Se já existe um token salvo, tenta logar direto sem pedir usuário/senha de novo.
+(function initialCheck(){
+  if(authToken && currentUser){
+    boot();
+  }
+})();
+
+/* =========================================================
+   RENDER (idêntico à versão local — só a origem dos dados mudou)
+   ========================================================= */
+let taskFilter = 'hoje';
+let projFilter = 'todos';
+let calCursor = new Date();
+
+function renderAll(){
+  if(!DB) return;
+  renderTopStuff();
+  renderDashboard();
+  renderProjects();
+  renderTasks();
+  renderGoals();
+  renderJournal();
+  renderNotes();
+  renderReading();
+  renderCourses();
+  renderHabits();
+  renderFitness();
+  renderSleep();
+  renderNutrition();
+  renderFinance();
+  renderCalendar();
+  renderFiles();
+  renderAchievements();
+  renderSettings();
+}
+
+function renderTopStuff(){
+  document.getElementById('badgeTasks').textContent = DB.tasks.filter(t=>!t.done).length;
+  document.getElementById('badgeProjects').textContent = DB.projects.filter(p=>p.status!=='finalizado').length;
+  const bestStreak = DB.habits.reduce((max,h)=>Math.max(max, computeStreak(h.id)), 0);
+  document.getElementById('sidebarStreak').textContent = `streak de ${bestStreak} dias`;
+}
+
+function renderDashboard(){
+  const today = todayStr();
+  const todaysTasks = DB.tasks.filter(t=>String(t.due).slice(0,10)===today);
+  const doneToday = todaysTasks.filter(t=>t.done).length;
+  const habitsToday = DB.habits.length;
+  const habitsDoneToday = DB.habitLogs.filter(l=>String(l.date).slice(0,10)===today).length;
+  const balance = DB.transactions.reduce((s,t)=>s+t.amount,0);
+  const last7Sleep = DB.sleepLogs.slice(0,7);
+  const avgSleep = last7Sleep.length ? (last7Sleep.reduce((s,l)=>s+l.hours,0)/last7Sleep.length) : 0;
+
+  const hour = new Date().getHours();
+  document.getElementById('greeting').textContent = hour<12 ? 'Bom dia 👋' : hour<18 ? 'Boa tarde 👋' : 'Boa noite 👋';
+  const pct = todaysTasks.length ? Math.round((doneToday/todaysTasks.length)*100) : 0;
+  document.getElementById('heroSub').textContent = `Você concluiu ${pct}% das suas tarefas de hoje.`;
+  document.getElementById('flowFill').style.width = Math.max(6,pct) + '%';
+
+  document.getElementById('heroStats').innerHTML = `
+    <div class="hero-stat"><b>${avgSleep? avgSleep.toFixed(1)+'h':'—'}</b><span>sono médio (7d)</span></div>
+    <div class="hero-stat"><b>${brl(balance)}</b><span>saldo</span></div>
+    <div class="hero-stat"><b>${DB.habits.reduce((m,h)=>Math.max(m,computeStreak(h.id)),0)}</b><span>dias de streak</span></div>
+  `;
+
+  document.getElementById('statGrid').innerHTML = `
+    <div class="card stat-card"><div class="stat-top"><span class="stat-label">Tarefas hoje</span><div class="ic" style="background:rgba(79,216,196,.14);color:var(--teal)">✓</div></div><div class="stat-val">${doneToday} / ${todaysTasks.length}</div><div class="stat-delta up">concluídas hoje</div></div>
+    <div class="card stat-card"><div class="stat-top"><span class="stat-label">Hábitos</span><div class="ic" style="background:rgba(139,124,246,.14);color:var(--violet)">◧</div></div><div class="stat-val">${habitsDoneToday} / ${habitsToday}</div><div class="stat-delta up">${habitsToday? Math.round(habitsDoneToday/habitsToday*100):0}% concluído</div></div>
+    <div class="card stat-card"><div class="stat-top"><span class="stat-label">Projetos ativos</span><div class="ic" style="background:rgba(240,169,60,.14);color:var(--amber)">▤</div></div><div class="stat-val">${DB.projects.filter(p=>p.status==='andamento').length}</div><div class="stat-delta" style="color:var(--text-muted)">em andamento</div></div>
+    <div class="card stat-card"><div class="stat-top"><span class="stat-label">Próxima entrega</span><div class="ic" style="background:rgba(240,104,140,.14);color:var(--rose)">◔</div></div><div class="stat-val" style="font-size:15px;">${nextDeadlineLabel()}</div><div class="stat-delta down">${nextDeadlineWhen()}</div></div>
+  `;
+
+  document.getElementById('tagTasksToday').textContent = `${todaysTasks.length} itens`;
+  document.getElementById('dashTasks').innerHTML = todaysTasks.length ? todaysTasks.slice(0,6).map(t=>taskRowHtml(t)).join('') : '<div class="empty-note">Nenhuma tarefa para hoje. Aproveite ou adicione uma nova.</div>';
+
+  const week = lastNDaysProductivity(7);
+  document.getElementById('prodChart').innerHTML = week.map(d=>`<div class="mini-bar" style="height:${Math.max(4,d.pct)}%"><span>${d.label}</span></div>`).join('');
+
+  const mini = document.getElementById('miniHeat'); mini.innerHTML='';
+  for(let i=13;i>=0;i--){ const date=addDays(-i); mini.innerHTML += `<div class="hcell" style="background:${heatColor(dayHabitLevel(date))}"></div>`; }
+
+  document.getElementById('dashGoals').innerHTML = DB.goals.slice(0,3).map(g=>{
+    const pct = Math.min(100, Math.round((g.current/g.target)*100));
+    return `<div class="goal-item"><div class="goal-top"><span>${escapeHtml(g.title)}</span><span style="color:var(--text-muted)">${g.current}/${g.target}</span></div><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div></div>`;
+  }).join('') || '<div class="empty-note">Nenhuma meta cadastrada ainda.</div>';
+
+  document.getElementById('dashBalance').textContent = brl(balance);
+  document.getElementById('dashSleep').textContent = (avgSleep? avgSleep.toFixed(1):'0') + 'h';
+  const dots = [];
+  for(let i=6;i>=0;i--){ const d=addDays(-i); const has = DB.sleepLogs.some(l=>String(l.date).slice(0,10)===d); dots.push(`<div class="wdot ${has?'on':''}"></div>`); }
+  document.getElementById('dashWeekDots').innerHTML = dots.join('');
+}
+
+function nextDeadlineLabel(){
+  const today = todayStr();
+  const upcoming = DB.tasks.filter(t=>!t.done && String(t.due).slice(0,10)>=today).sort((a,b)=>String(a.due).localeCompare(String(b.due)))[0];
+  return upcoming ? upcoming.title : 'Sem pendências';
+}
+function nextDeadlineWhen(){
+  const today = todayStr();
+  const upcoming = DB.tasks.filter(t=>!t.done && String(t.due).slice(0,10)>=today).sort((a,b)=>String(a.due).localeCompare(String(b.due)))[0];
+  if(!upcoming) return '';
+  const diff = Math.round((parseDate(upcoming.due) - parseDate(today))/86400000);
+  return diff<=0 ? 'vence hoje' : diff===1 ? 'vence amanhã' : `vence em ${diff} dias`;
+}
+function lastNDaysProductivity(n){
+  const labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const out = [];
+  for(let i=n-1;i>=0;i--){
+    const date = addDays(-i);
+    const d = parseDate(date);
+    const dayTasks = DB.tasks.filter(t=>String(t.due).slice(0,10)===date);
+    const done = dayTasks.filter(t=>t.done).length;
+    const pct = dayTasks.length ? Math.round((done/dayTasks.length)*100) : 0;
+    out.push({label: labels[d.getDay()], pct});
+  }
+  return out;
+}
+function dayHabitLevel(date){
+  const total = DB.habits.length || 1;
+  const done = DB.habitLogs.filter(l=>String(l.date).slice(0,10)===date).length;
+  const ratio = done/total;
+  if(ratio<=0) return 0; if(ratio<0.4) return 1; if(ratio<0.8) return 2; return 3;
+}
+function heatColor(lvl){
+  return ['var(--border-soft)','rgba(79,216,196,.35)','rgba(79,216,196,.65)','linear-gradient(135deg,var(--teal),var(--violet))'][lvl];
+}
+
+function taskRowHtml(t){
+  return `<div class="task-row ${t.done?'strike':''}">
+    <div class="check ${t.done?'done':''}" onclick="toggleTask('${t.id}')"></div>
+    <div class="t-name">${escapeHtml(t.title)}</div>
+    <span class="tagchip">${escapeHtml(t.category||'Geral')}</span>
+    <span class="pill ${t.priority}">${t.priority==='alta'?'Alta':t.priority==='media'?'Média':'Baixa'}</span>
+    <button class="row-del" onclick="editTask('${t.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+    <button class="row-del" onclick="confirmAction('Excluir tarefa?','Essa ação não pode ser desfeita.', () => Tasks.remove('${t.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>`;
+}
+function toggleTask(id){ const t = DB.tasks.find(x=>x.id===id); if(t) Tasks.update(id, {done: !t.done}); }
+function openTaskForm(existing){
+  openForm(existing?'Editar tarefa':'Nova tarefa', [
+    {key:'title', label:'Título', value: existing?.title||''},
+    {key:'category', label:'Categoria', type:'category', value: existing?.category||'Pessoal', options: TASK_CATEGORIES},
+    {key:'priority', label:'Prioridade', type:'select', value: existing?.priority||'media', options:[{value:'alta',label:'Alta'},{value:'media',label:'Média'},{value:'baixa',label:'Baixa'}]},
+    {key:'projectId', label:'Projeto vinculado (opcional)', type:'select', value: existing?.projectId||'', options:[{value:'',label:'Nenhum'}, ...DB.projects.map(p=>({value:p.id,label:p.name}))]},
+    {key:'due', label:'Prazo', type:'date', value: existing ? String(existing.due).slice(0,10) : todayStr()},
+  ], v => {
+    const payload = {title:v.title||'Nova tarefa', category:v.category, priority:v.priority, due:v.due||todayStr(), projectId: v.projectId||null};
+    return existing ? Tasks.update(existing.id, payload) : Tasks.add({...payload, done:false});
+  });
+}
+function editTask(id){ const t = DB.tasks.find(x=>x.id===id); if(t) openTaskForm(t); }
+
+function renderTasks(){
+  const today = todayStr();
+  let list = DB.tasks.slice();
+  if(taskFilter==='hoje') list = list.filter(t=>String(t.due).slice(0,10)===today);
+  else if(taskFilter==='amanha') list = list.filter(t=>String(t.due).slice(0,10)===addDays(1));
+  else if(taskFilter==='semana') list = list.filter(t=>String(t.due).slice(0,10)>=today && String(t.due).slice(0,10)<=addDays(7));
+  else if(taskFilter==='atrasadas') list = list.filter(t=>!t.done && String(t.due).slice(0,10)<today);
+  else if(taskFilter==='concluidas') list = list.filter(t=>t.done);
+  list.sort((a,b)=>String(a.due).localeCompare(String(b.due)));
+  document.getElementById('taskList').innerHTML = list.length ? list.map(taskRowHtml).join('') : '<div class="empty-note">Nenhuma tarefa nesse filtro.</div>';
+}
+
+const PROJECT_COLUMNS = [
+  {key:'planejamento', label:'Planejamento'},
+  {key:'andamento', label:'Em andamento'},
+  {key:'pausado', label:'Pausado'},
+  {key:'finalizado', label:'Finalizado'},
+];
+const TASK_CATEGORIES = ['Pessoal','Trabalho','Estudos','Saúde','Finanças','Projetos','Treinos','Casa'];
+const PROJECT_TAGS = ['dev','pessoal','estudo','side project','carreira','saúde','financeiro'];
+const GOAL_CATEGORIES = ['Fitness','Educação','Financeiro','Saúde','Carreira','Pessoal'];
+const NOTE_TAGS = ['arquitetura','ideias','carreira','saúde','finanças','estudos'];
+function renderProjects(){
+  const board = document.getElementById('kanbanBoard');
+  let cols = PROJECT_COLUMNS;
+  if(projFilter==='andamento') cols = PROJECT_COLUMNS.filter(c=>c.key==='andamento');
+  if(projFilter==='pausado') cols = PROJECT_COLUMNS.filter(c=>c.key==='pausado');
+  board.innerHTML = cols.map(col=>{
+    const items = DB.projects.filter(p=>p.status===col.key);
+    return `<div>
+      <div class="kcol-head">${col.label} <span class="n">${items.length}</span></div>
+      ${items.map(p=>{
+        const linkedTasks = DB.tasks.filter(t=>t.projectId===p.id);
+        const hasLinked = linkedTasks.length>0;
+        return `
+        <div class="kcard">
+          <h4>${escapeHtml(p.name)}</h4>
+          <div class="kcard-tags">
+            <span class="tagchip">${escapeHtml(p.tag||'geral')}</span>
+            <div style="display:flex;gap:4px;">
+              <button class="row-del" onclick="editProject('${p.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+              <button class="row-del" onclick="confirmAction('Excluir projeto?','Isso também desvincula as tarefas associadas a ele. Essa ação não pode ser desfeita.', () => Projects.remove('${p.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </div>
+          <div class="progress-track" style="margin-bottom:10px;"><div class="progress-fill" style="width:${p.progress}%"></div></div>
+          <div class="kcard-foot">
+            <span class="stat-label">${p.progress}% ${hasLinked ? `· ${linkedTasks.filter(t=>t.done).length}/${linkedTasks.length} tarefas` : ''}</span>
+            ${hasLinked ? '' : `<div style="display:flex;gap:4px;">
+              <button class="btn sm" onclick="Projects.update('${p.id}',{progress:Math.max(0,${p.progress}-10)})">−10%</button>
+              <button class="btn sm" onclick="Projects.update('${p.id}',{progress:Math.min(100,${p.progress}+10)})">+10%</button>
+            </div>`}
+          </div>
+          ${hasLinked ? `<div style="font-size:11px;color:var(--text-faint);margin-top:6px;">Progresso automático (baseado nas tarefas vinculadas)</div>` : ''}
+          <select onchange="Projects.update('${p.id}',{status:this.value})" style="margin-top:8px;">
+            ${PROJECT_COLUMNS.map(c=>`<option value="${c.key}" ${c.key===p.status?'selected':''}>${c.label}</option>`).join('')}
+          </select>
+        </div>`;
+      }).join('') || '<div class="empty-note">Vazio</div>'}
+    </div>`;
+  }).join('');
+}
+function openProjectForm(existing){
+  openForm(existing?'Editar projeto':'Novo projeto', [
+    {key:'name', label:'Nome', value: existing?.name||''},
+    {key:'tag', label:'Categoria', type:'category', value: existing?.tag||'geral', options: PROJECT_TAGS},
+    {key:'status', label:'Status', type:'select', value: existing?.status||'planejamento', options: PROJECT_COLUMNS.map(c=>({value:c.key,label:c.label}))},
+  ], v => {
+    const payload = {name:v.name||'Novo projeto', tag:v.tag, status:v.status};
+    return existing ? Projects.update(existing.id, payload) : Projects.add({...payload, progress:0});
+  });
+}
+function editProject(id){ const p = DB.projects.find(x=>x.id===id); if(p) openProjectForm(p); }
+
+function renderGoals(){
+  document.getElementById('goalList').innerHTML = DB.goals.map(g=>{
+    const pct = Math.min(100, Math.round((g.current/g.target)*100));
+    const linkedHabit = DB.habits.find(h=>h.id===g.habitId);
+    const step = g.step || 1;
+    const unit = g.unit || 'un.';
+    return `<div class="card goal-full">
+      <div class="goal-full-top">
+        <div><h4>${escapeHtml(g.title)}</h4><span class="cat">${escapeHtml(g.category||'')} · ${escapeHtml(g.period||'')}${linkedHabit ? ` · vinculada ao hábito "${escapeHtml(linkedHabit.name)}"` : ''}</span></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="pill ${pct<40?'high':pct<75?'media':'baixa'}">${pct}%</span>
+          <button class="row-del" onclick="editGoal('${g.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+          <button class="row-del" onclick="confirmAction('Excluir meta?','Essa ação não pode ser desfeita.', () => Goals.remove('${g.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="goal-adjust">
+        <span class="stat-label">${g.current} / ${g.target} ${escapeHtml(unit)}</span>
+        <button class="btn sm" onclick="Goals.update('${g.id}',{current: Math.max(0, +(${g.current} - ${step}).toFixed(2))})">−${step}</button>
+        <button class="btn sm" onclick="Goals.update('${g.id}',{current: Math.min(${g.target}, +(${g.current} + ${step}).toFixed(2))})">+${step}</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-note">Nenhuma meta cadastrada.</div>';
+}
+function openGoalForm(existing){
+  openForm(existing?'Editar meta':'Nova meta', [
+    {key:'title', label:'Título', value: existing?.title||''},
+    {key:'category', label:'Categoria', type:'category', value: existing?.category||'Pessoal', options: GOAL_CATEGORIES},
+    {key:'period', label:'Período', type:'select', value: existing?.period||'Anual', options:['Anual','Semestral','Trimestral','Mensal','Semanal','Diária'].map(p=>({value:p,label:p}))},
+    {key:'target', label:'Meta (número alvo)', type:'number', value: existing?.target ?? 100},
+    {key:'current', label:'Progresso atual', type:'number', value: existing?.current ?? 0},
+    {key:'unit', label:'Unidade (ex: dias, km, livros, R$)', value: existing?.unit||'un.'},
+    {key:'step', label:'Incremento por clique de +/-', type:'number', value: existing?.step ?? 1},
+    {key:'habitId', label:'Vincular a um hábito (opcional)', type:'select', value: existing?.habitId||'', options:[{value:'',label:'Nenhum'}, ...DB.habits.map(h=>({value:h.id,label:h.name}))]},
+  ], v => {
+    const payload = {title:v.title||'Nova meta', category:v.category, period:v.period, target:+v.target||1, current:+v.current||0, unit:v.unit||'un.', step:+v.step||1, habitId:v.habitId||null};
+    return existing ? Goals.update(existing.id, payload) : Goals.add(payload);
+  });
+}
+function editGoal(id){ const g = DB.goals.find(x=>x.id===id); if(g) openGoalForm(g); }
+
+function renderJournal(){
+  document.getElementById('journalList').innerHTML = DB.journal.map(j=>`
+    <div class="journal-entry">
+      <div class="journal-top"><span class="mood-emoji">${j.mood}</span><b style="font-size:13.5px;">${escapeHtml(j.text.slice(0,40))}${j.text.length>40?'…':''}</b><span class="journal-date" style="margin-left:auto;">${brDate(j.date)}</span><button class="row-del" onclick="editJournal('${j.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="row-del" onclick="confirmAction('Excluir registro do diário?','Essa ação não pode ser desfeita.', () => Journal.remove('${j.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <p class="journal-text">${escapeHtml(j.text)}</p>
+      <div class="journal-tags">${(j.tags||[]).map(t=>`<span class="tagchip">${escapeHtml(t)}</span>`).join('')}</div>
+    </div>`).join('') || '<div class="empty-note">Nenhum registro ainda. Que tal escrever sobre o seu dia?</div>';
+
+  const moodVal = {'😔':30,'😐':60,'😊':90};
+  const week = [];
+  for(let i=6;i>=0;i--){
+    const date=addDays(-i);
+    const entry = DB.journal.find(j=>String(j.date).slice(0,10)===date);
+    week.push({label:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][parseDate(date).getDay()], val: entry?moodVal[entry.mood]||50:0});
+  }
+  document.getElementById('moodChart').innerHTML = week.map(d=>`<div class="mini-bar" style="height:${Math.max(4,d.val)}%"><span>${d.label}</span></div>`).join('');
+}
+function brDate(iso){ const d=parseDate(iso); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; }
+function openJournalForm(existing){
+  openForm(existing?'Editar registro':'Novo registro de diário', [
+    {key:'mood', label:'Humor', type:'select', value: existing?.mood||'😊', options:[{value:'😊',label:'😊 Bom'},{value:'😐',label:'😐 Neutro'},{value:'😔',label:'😔 Difícil'}]},
+    {key:'text', label:'O que aconteceu?', type:'textarea', value: existing?.text||''},
+    {key:'tags', label:'Tags (separadas por vírgula)', value: (existing?.tags||[]).join(', ')},
+  ], v => {
+    const payload = {mood:v.mood, text:v.text||'', tags:(v.tags||'').split(',').map(s=>s.trim()).filter(Boolean)};
+    return existing ? Journal.update(existing.id, payload) : Journal.add({date:todayStr(), ...payload});
+  });
+}
+function editJournal(id){ const j = DB.journal.find(x=>x.id===id); if(j) openJournalForm(j); }
+
+function renderNotes(){
+  const q = (document.getElementById('noteSearch').value||'').toLowerCase();
+  const list = DB.notes.filter(n => !q || n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+  document.getElementById('notesGrid').innerHTML = list.map(n=>`
+    <div class="card note-card">
+      <h4>${escapeHtml(n.title)}</h4>
+      <p>${escapeHtml(n.content)}</p>
+      <div class="note-meta"><span>${(n.tags||[]).map(t=>'#'+t).join(' ')}</span><div style="display:flex;gap:4px;"><button class="row-del" onclick="editNote('${n.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="row-del" onclick="confirmAction('Excluir página?','Essa ação não pode ser desfeita.', () => Notes.remove('${n.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div></div>
+    </div>`).join('') || '<div class="empty-note">Nenhuma página encontrada.</div>';
+}
+function openNoteForm(existing){
+  openForm(existing?'Editar página':'Nova página', [
+    {key:'title', label:'Título', value: existing?.title||''},
+    {key:'content', label:'Conteúdo', type:'textarea', value: existing?.content||''},
+    {key:'tags', label:'Tag', type:'category', value: (existing?.tags||[])[0]||'ideias', options: NOTE_TAGS},
+  ], v => {
+    const payload = {title:v.title||'Nova página', content:v.content||'', tags: v.tags?[v.tags]:[]};
+    return existing ? Notes.update(existing.id, payload) : Notes.add(payload);
+  });
+}
+function editNote(id){ const n = DB.notes.find(x=>x.id===id); if(n) openNoteForm(n); }
+
+function renderReading(){
+  const done = DB.books.filter(b=>b.progress>=100).length;
+  const avgRating = DB.books.length ? (DB.books.reduce((s,b)=>s+(b.rating||0),0)/DB.books.length).toFixed(1) : '—';
+  document.getElementById('readingStats').innerHTML = `
+    <div class="card pr-card"><span>Livros lidos</span><b>${done} / ${DB.books.length}</b></div>
+    <div class="card pr-card"><span>Em progresso</span><b>${DB.books.filter(b=>b.progress>0 && b.progress<100).length}</b></div>
+    <div class="card pr-card"><span>Nota média</span><b>${avgRating} ★</b></div>
+    <div class="card pr-card"><span>Total cadastrado</span><b>${DB.books.length}</b></div>
+  `;
+  document.getElementById('booksGrid').innerHTML = DB.books.map(b=>`
+    <div class="card book-card">
+      <div class="book-cover" style="background:linear-gradient(135deg,var(--teal),var(--violet));"></div>
+      <h4>${escapeHtml(b.title)}</h4>
+      <div class="author">${escapeHtml(b.author||'')}</div>
+      <div class="progress-track" style="margin-bottom:8px;"><div class="progress-fill" style="width:${b.progress}%"></div></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">${b.totalPages ? `${b.currentPage||0} / ${b.totalPages} páginas` : `${b.progress}%`}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="stars">${'★'.repeat(b.rating||0)}${'☆'.repeat(5-(b.rating||0))}</span>
+        <div style="display:flex;gap:4px;">
+          <button class="row-del" onclick="editBook('${b.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+          <button class="row-del" onclick="confirmAction('Excluir livro?','Essa ação não pode ser desfeita.', () => Books.remove('${b.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+    </div>`).join('') || '<div class="empty-note">Nenhum livro cadastrado.</div>';
+}
+function openBookForm(existing){
+  openForm(existing?'Editar livro':'Novo livro', [
+    {key:'title', label:'Título', value: existing?.title||''},
+    {key:'author', label:'Autor', value: existing?.author||''},
+    {key:'totalPages', label:'Total de páginas', type:'number', value: existing?.totalPages ?? ''},
+    {key:'currentPage', label:'Página atual', type:'number', value: existing?.currentPage ?? 0},
+    {key:'rating', label:'Nota (0-5)', type:'number', value: existing?.rating ?? 0},
+  ], v => {
+    const payload = {title:v.title||'Novo livro', author:v.author||'', rating:Math.min(5,+v.rating||0)};
+    if(v.totalPages){ payload.totalPages = +v.totalPages; payload.currentPage = +v.currentPage||0; }
+    return existing ? Books.update(existing.id, payload) : Books.add(payload);
+  });
+}
+function editBook(id){ const b = DB.books.find(x=>x.id===id); if(b) openBookForm(b); }
+
+function renderCourses(){
+  document.getElementById('coursesList').innerHTML = DB.courses.map(c=>`
+    <div class="course-row">
+      <div class="course-plat">🎓</div>
+      <div class="course-info"><b>${escapeHtml(c.title)}</b><span>${escapeHtml(c.platform||'')}${c.totalLessons?` · ${c.currentLesson||0}/${c.totalLessons} aulas`:''}</span></div>
+      <div class="course-progress"><div class="progress-track"><div class="progress-fill" style="width:${c.progress}%"></div></div></div>
+      <span class="pill ${c.progress<40?'high':c.progress<80?'media':'baixa'}">${c.progress}%</span>
+      <button class="row-del" onclick="editCourse('${c.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+      <button class="row-del" onclick="confirmAction('Excluir curso?','Essa ação não pode ser desfeita.', () => Courses.remove('${c.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>`).join('') || '<div class="empty-note">Nenhum curso cadastrado.</div>';
+}
+function openCourseForm(existing){
+  openForm(existing?'Editar curso':'Novo curso', [
+    {key:'title', label:'Título', value: existing?.title||''},
+    {key:'platform', label:'Plataforma', value: existing?.platform||''},
+    {key:'totalLessons', label:'Total de aulas', type:'number', value: existing?.totalLessons ?? ''},
+    {key:'currentLesson', label:'Aulas concluídas', type:'number', value: existing?.currentLesson ?? 0},
+  ], v => {
+    const payload = {title:v.title||'Novo curso', platform:v.platform||''};
+    if(v.totalLessons){ payload.totalLessons = +v.totalLessons; payload.currentLesson = +v.currentLesson||0; }
+    return existing ? Courses.update(existing.id, payload) : Courses.add(payload);
+  });
+}
+function editCourse(id){ const c = DB.courses.find(x=>x.id===id); if(c) openCourseForm(c); }
+
+function computeStreak(habitId){
+  let streak = 0; let d = todayStr();
+  const has = date => DB.habitLogs.some(l=>l.habitId===habitId && String(l.date).slice(0,10)===date);
+  if(!has(d)) d = addDays(-1);
+  while(has(d)){ streak++; const dt=parseDate(d); dt.setDate(dt.getDate()-1); d=fmt(dt); }
+  return streak;
+}
+function renderHabits(){
+  const full = document.getElementById('fullHeat'); full.innerHTML='';
+  for(let i=89;i>=0;i--){ const date=addDays(-i); full.innerHTML += `<div class="hm-cell" style="background:${heatColor(dayHabitLevel(date))}" title="${date}"></div>`; }
+
+  const today = todayStr();
+  document.getElementById('habitList').innerHTML = DB.habits.map(h=>{
+    const doneToday = DB.habitLogs.some(l=>l.habitId===h.id && String(l.date).slice(0,10)===today);
+    const streak = computeStreak(h.id);
+    const week = [];
+    for(let i=6;i>=0;i--){ const date=addDays(-i); week.push({date, on: DB.habitLogs.some(l=>l.habitId===h.id && String(l.date).slice(0,10)===date)}); }
+    return `<div class="habit-list-row">
+      <div class="habit-ic">${h.icon||'●'}</div>
+      <div class="habit-meta"><b>${escapeHtml(h.name)}</b><span>Hábito diário</span></div>
+      <div class="streak-flame">🔥 ${streak}</div>
+      <div class="week-dots">${week.map(w=>`<div class="wdot ${w.on?'on':''}" style="cursor:pointer;" title="${brDate(w.date)} — clique para marcar/desmarcar" onclick="Habits.toggleDate('${h.id}','${w.date}')"></div>`).join('')}</div>
+      <div class="check ${doneToday?'done':''}" onclick="Habits.toggleToday('${h.id}')"></div>
+      <button class="row-del" onclick="editHabit('${h.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+      <button class="row-del" onclick="confirmAction('Excluir hábito?','Todo o histórico de streak desse hábito será perdido.', () => Habits.remove('${h.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>`;
+  }).join('') || '<div class="empty-note">Nenhum hábito cadastrado.</div>';
+}
+function openHabitForm(existing){
+  openForm(existing?'Editar hábito':'Novo hábito', [
+    {key:'name', label:'Nome', value: existing?.name||''},
+    {key:'icon', label:'Emoji (opcional)', value: existing?.icon||'✅'},
+  ], v => {
+    const payload = {name:v.name||'Novo hábito', icon:v.icon||'✅'};
+    return existing ? Habits.update(existing.id, payload) : Habits.add(payload);
+  });
+}
+function editHabit(id){ const h = DB.habits.find(x=>x.id===id); if(h) openHabitForm(h); }
+
+function renderFitness(){
+  const bestRun = DB.runs.slice().sort((a,b)=>timeToSec(a.time)/a.distance - timeToSec(b.time)/b.distance)[0];
+  document.getElementById('fitnessStats').innerHTML = `
+    <div class="card pr-card"><span>Treinos registrados</span><b>${DB.workouts.length}</b></div>
+    <div class="card pr-card"><span>Corridas registradas</span><b>${DB.runs.length}</b></div>
+    <div class="card pr-card"><span>Distância total corrida</span><b>${DB.runs.reduce((s,r)=>s+Number(r.distance),0).toFixed(1)} km</b></div>
+    <div class="card pr-card"><span>Melhor pace</span><b>${bestRun ? paceLabel(bestRun) : '—'}</b></div>
+  `;
+
+  // Evolução de carga: usa apenas treinos onde um exercício de referência (mainLift) foi informado.
+  const loadPoints = DB.workouts
+    .filter(w=>w.mainLiftWeight != null)
+    .slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)))
+    .map(w=>({ value: w.mainLiftWeight, tooltip: `<b>${brDate(w.date)}</b>${escapeHtml(w.mainLift||'Exercício')}: ${w.mainLiftWeight}kg` }));
+  document.getElementById('loadChart').innerHTML = loadPoints.length
+    ? lineChartSVG(loadPoints, {color:'var(--amber)'})
+    : '<div class="empty-note">Informe um "exercício de referência" e a carga ao registrar treinos para ver a evolução aqui.</div>';
+
+  // Evolução de corrida: pace (segundos/km, menor é melhor) ao longo do tempo.
+  const runPoints = DB.runs.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)))
+    .map(r=>({ value: timeToSec(r.time)/Number(r.distance), tooltip: `<b>${brDate(r.date)}</b>${r.distance}km em ${r.time} · ${paceLabel(r)}` }));
+  document.getElementById('runChart').innerHTML = lineChartSVG(runPoints, {color:'var(--violet)'});
+
+  document.getElementById('workoutList').innerHTML = DB.workouts.map(w=>`
+    <div class="task-row" style="align-items:flex-start;flex-direction:column;gap:4px;">
+      <div style="display:flex;width:100%;align-items:center;gap:8px;">
+        <b style="flex:1;">${escapeHtml(w.title)}</b>
+        ${w.mainLiftWeight!=null?`<span class="tagchip">${escapeHtml(w.mainLift||'')}: ${w.mainLiftWeight}kg</span>`:''}
+        <span class="stat-label">${brDate(w.date)}</span>
+        <button class="row-del" onclick="editWorkout('${w.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        <button class="row-del" onclick="confirmAction('Excluir treino?','Essa ação não pode ser desfeita.', () => Workouts.remove('${w.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);white-space:pre-line;">${escapeHtml(w.notes||'')}</div>
+    </div>`).join('') || '<div class="empty-note">Nenhum treino registrado.</div>';
+  document.getElementById('runList').innerHTML = DB.runs.map(r=>`
+    <div class="task-row"><div class="t-name">${r.distance} km</div><span class="stat-label">${r.time}</span><span class="stat-label">${paceLabel(r)}</span><span class="stat-label">${brDate(r.date)}</span><button class="row-del" onclick="editRun('${r.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="row-del" onclick="confirmAction('Excluir corrida?','Essa ação não pode ser desfeita.', () => Runs.remove('${r.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>`).join('') || '<div class="empty-note">Nenhuma corrida registrada.</div>';
+}
+function timeToSec(t){ const [m,s]=t.split(':').map(Number); return m*60+(s||0); }
+function paceLabel(r){ const secPerKm = timeToSec(r.time)/Number(r.distance); const m=Math.floor(secPerKm/60), s=Math.round(secPerKm%60); return `${m}:${String(s).padStart(2,'0')}/km`; }
+function openWorkoutForm(existing){
+  openForm(existing?'Editar treino':'Registrar treino', [
+    {key:'title', label:'Nome do treino', value: existing?.title||''},
+    {key:'date', label:'Data', type:'date', value: existing?String(existing.date).slice(0,10):todayStr()},
+    {key:'mainLift', label:'Exercício de referência (opcional, p/ gráfico)', value: existing?.mainLift||''},
+    {key:'mainLiftWeight', label:'Carga desse exercício (kg)', type:'number', value: existing?.mainLiftWeight??''},
+    {key:'notes', label:'Exercícios (uma linha por exercício)', type:'textarea', value: existing?.notes||''},
+  ], v => {
+    const payload = {title:v.title||'Treino', date:v.date||todayStr(), notes:v.notes||'', mainLift:v.mainLift||null, mainLiftWeight: v.mainLiftWeight?+v.mainLiftWeight:null};
+    return existing ? Workouts.update(existing.id, payload) : Workouts.add(payload);
+  });
+}
+function editWorkout(id){ const w = DB.workouts.find(x=>x.id===id); if(w) openWorkoutForm(w); }
+function openRunForm(existing){
+  openForm(existing?'Editar corrida':'Registrar corrida', [
+    {key:'distance', label:'Distância (km)', type:'number', value: existing?.distance??5},
+    {key:'time', label:'Tempo (mm:ss)', value: existing?.time||'25:00'},
+    {key:'date', label:'Data', type:'date', value: existing?String(existing.date).slice(0,10):todayStr()},
+  ], v => {
+    const payload = {distance:+v.distance||0, time:v.time||'0:00', date:v.date||todayStr()};
+    return existing ? Runs.update(existing.id, payload) : Runs.add(payload);
+  });
+}
+function editRun(id){ const r = DB.runs.find(x=>x.id===id); if(r) openRunForm(r); }
+
+function renderSleep(){
+  const last7 = DB.sleepLogs.slice(0,7);
+  const avg = last7.length ? last7.reduce((s,l)=>s+l.hours,0)/last7.length : 0;
+  const best = DB.sleepLogs.slice().sort((a,b)=>b.hours-a.hours)[0];
+  const avgQuality = last7.length ? Math.round(last7.reduce((s,l)=>s+l.quality,0)/last7.length/5*100) : 0;
+  document.getElementById('sleepStats').innerHTML = `
+    <div class="card pr-card"><span>Média (7 dias)</span><b>${avg.toFixed(1)}h</b></div>
+    <div class="card pr-card"><span>Registros totais</span><b>${DB.sleepLogs.length}</b></div>
+    <div class="card pr-card"><span>Melhor noite</span><b>${best?best.hours+'h':'—'}</b></div>
+    <div class="card pr-card"><span>Qualidade média</span><b>${avgQuality}%</b></div>
+  `;
+  const qualityColor = {1:'var(--rose)',2:'var(--rose)',3:'var(--amber)',4:'var(--teal)',5:'var(--teal)'};
+  const days=[];
+  for(let i=13;i>=0;i--){
+    const date=addDays(-i);
+    const log=DB.sleepLogs.find(l=>String(l.date).slice(0,10)===date);
+    days.push({date, label:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][parseDate(date).getDay()], h: log?log.hours:0, quality: log?log.quality:null});
+  }
+  document.getElementById('sleepChart').innerHTML = days.map(d=>{
+    const tooltip = d.h
+      ? `<b>${brDate(d.date)} · ${d.label}</b>${d.h}h dormidas<br>Qualidade: ${'★'.repeat(d.quality)}${'☆'.repeat(5-d.quality)}`
+      : `<b>${brDate(d.date)} · ${d.label}</b>Sem registro`;
+    const color = d.quality ? qualityColor[d.quality] : 'var(--border-soft)';
+    return `<div class="mini-bar" data-tooltip="${escapeHtml(tooltip)}" style="height:${Math.max(4,d.h/9*100)}%;background:${d.h?`linear-gradient(180deg,${color},${color})`:'var(--border-soft)'}"><span>${d.label}</span></div>`;
+  }).join('');
+}
+
+function renderNutrition(){
+  const today = todayStr();
+  const meals = DB.meals.filter(m=>String(m.date).slice(0,10)===today);
+  const totalCal = meals.reduce((s,m)=>s+Number(m.calories),0);
+  const goalCal = 2400;
+  document.getElementById('calToday').textContent = `${totalCal} / ${goalCal} kcal`;
+  document.getElementById('calBar').style.width = Math.min(100, Math.round(totalCal/goalCal*100)) + '%';
+  document.getElementById('mealList').innerHTML = meals.map(m=>`<div class="task-row"><div class="t-name">${escapeHtml(m.name)}</div><span class="stat-label" style="font-family:var(--font-mono)">${m.calories} kcal</span><button class="row-del" onclick="confirmAction('Excluir refeição?','Essa ação não pode ser desfeita.', () => Meals.remove('${m.id}'))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>`).join('') || '<div class="empty-note">Nenhuma refeição registrada hoje.</div>';
+
+  const cups = (DB.water[today]||0);
+  document.getElementById('waterTag').textContent = `${cups} / 8 copos`;
+  document.getElementById('waterTrack').innerHTML = Array.from({length:8}).map((_,i)=>`<div class="water-cup ${i<cups?'filled':''}" onclick="setWater(${i+1})"></div>`).join('');
+
+  const sortedW = DB.weight.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const latest = sortedW[sortedW.length-1];
+  document.getElementById('weightStats').innerHTML = latest ? `
+    <div><div class="stat-val" style="font-size:20px;">${latest.kg} kg</div><span class="stat-label">peso atual</span></div>
+    <div style="text-align:right;"><div class="stat-val" style="font-size:20px;">${latest.bodyFat ?? '—'}%</div><span class="stat-label">gordura corporal</span></div>
+  ` : '<div class="empty-note">Sem registros de peso.</div>';
+  const weightPoints = sortedW.map(w=>({ value: w.kg, tooltip: `<b>${brDate(w.date)}</b>${w.kg}kg${w.bodyFat!=null?` · ${w.bodyFat}% gordura`:''}` }));
+  document.getElementById('weightChart').innerHTML = weightPoints.length
+    ? lineChartSVG(weightPoints, {color:'var(--teal)'})
+    : '<div class="empty-note">Registre seu peso para ver a evolução corporal aqui.</div>';
+}
+function setWater(n){
+  const today = todayStr();
+  const cur = DB.water[today]||0;
+  Water.setToday(cur===n ? n-1 : n);
+}
+
+function renderFinance(){
+  const balance = DB.transactions.reduce((s,t)=>s+t.amount,0);
+  const receitas = DB.transactions.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+  const despesas = DB.transactions.filter(t=>t.amount<0).reduce((s,t)=>s+t.amount,0);
+  document.getElementById('balanceNum').textContent = brl(balance);
+  document.getElementById('balanceLegend').innerHTML = `<span><span class="legend-dot" style="background:var(--teal)"></span>Receitas ${brl(receitas)}</span><span><span class="legend-dot" style="background:var(--rose)"></span>Despesas ${brl(despesas)}</span>`;
+
+  const months = [];
+  for(let i=5;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; const label=d.toLocaleDateString('pt-BR',{month:'short'}); const total=DB.transactions.filter(t=>String(t.date).startsWith(key)).reduce((s,t)=>s+t.amount,0); months.push({label, total}); }
+  const maxAbs = Math.max(1,...months.map(m=>Math.abs(m.total)));
+  document.getElementById('financeChart').innerHTML = months.map(m=>`<div class="mini-bar" style="height:${Math.max(4,Math.abs(m.total)/maxAbs*100)}%;background:${m.total<0?'linear-gradient(180deg,var(--rose),var(--rose))':'linear-gradient(180deg,var(--violet),var(--teal))'}"><span>${m.label}</span></div>`).join('');
+
+  const catTotals = {};
+  DB.transactions.filter(t=>t.amount<0).forEach(t=>{ catTotals[t.category||'Outros'] = (catTotals[t.category||'Outros']||0) + Math.abs(t.amount); });
+  const colors=['var(--teal)','var(--violet)','var(--amber)','var(--rose)','#6C8CFF'];
+  const cats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+  const maxCat = Math.max(1,...cats.map(c=>c[1]));
+  document.getElementById('catBreakdown').innerHTML = cats.map(([cat,val],i)=>`
+    <div class="cat-row"><span class="cat-dot" style="background:${colors[i%colors.length]}"></span>${escapeHtml(cat)}<div class="cat-bar-track"><div class="cat-bar-fill" style="width:${val/maxCat*100}%;background:${colors[i%colors.length]}"></div></div><span class="cat-amt">${brl(val)}</span></div>
+  `).join('') || '<div class="empty-note">Sem despesas registradas.</div>';
+
+  document.getElementById('transactionList').innerHTML = DB.transactions.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(t=>`
+    <div class="task-row"><div class="t-name">${escapeHtml(t.desc)}</div><span class="tagchip">${escapeHtml(t.category||'Outros')}</span><span class="stat-label">${brDate(t.date)}</span><span style="color:${t.amount<0?'var(--rose)':'var(--teal)'};font-family:var(--font-mono);font-weight:600;">${t.amount<0?'-':'+'}${brl(Math.abs(t.amount)).replace('R$ ','R$')}</span><button class="row-del" onclick="editTransaction('${t.id}')" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="row-del" onclick="confirmAction('Excluir transação?','Essa ação não pode ser desfeita.', () => Transactions.remove('${t.id}'))" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  `).join('') || '<div class="empty-note">Nenhuma transação registrada.</div>';
+}
+const TRANSACTION_CATEGORIES = ['Salário','Freelance','Moradia','Alimentação','Transporte','Lazer','Educação','Saúde','Outros'];
+function openTransactionForm(existing){
+  openForm(existing?'Editar transação':'Nova transação', [
+    {key:'desc', label:'Descrição', value: existing?.desc||''},
+    {key:'category', label:'Categoria', type:'category', value: existing?.category||'Outros', options: TRANSACTION_CATEGORIES},
+    {key:'type', label:'Tipo', type:'select', value: existing ? (existing.amount<0?'despesa':'receita') : 'despesa', options:[{value:'receita',label:'Receita'},{value:'despesa',label:'Despesa'}]},
+    {key:'amount', label:'Valor (R$)', type:'number', value: existing?Math.abs(existing.amount):100},
+    {key:'date', label:'Data', type:'date', value: existing?String(existing.date).slice(0,10):todayStr()},
+  ], v => {
+    const payload = {desc:v.desc||'Transação', category:v.category||'Outros', type:v.type, amount: v.type==='despesa' ? -Math.abs(+v.amount||0) : Math.abs(+v.amount||0), date:v.date||todayStr()};
+    return existing ? Transactions.update(existing.id, payload) : Transactions.add(payload);
+  });
+}
+function editTransaction(id){ const t = DB.transactions.find(x=>x.id===id); if(t) openTransactionForm(t); }
+
+function renderCalendar(){
+  const label = calCursor.toLocaleDateString('pt-BR',{month:'long', year:'numeric'});
+  document.getElementById('calMonthLabel').textContent = label.charAt(0).toUpperCase()+label.slice(1);
+  const year = calCursor.getFullYear(), month = calCursor.getMonth();
+  const first = new Date(year, month, 1);
+  const startOffset = first.getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const grid = document.getElementById('calGrid');
+  const weekdayNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html = weekdayNames.map(w=>`<div class="cal-weekday">${w}</div>`).join('');
+  for(let i=0;i<startOffset;i++) html += `<div class="cal-cell dim"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr===todayStr();
+    const dots = [];
+    if(DB.tasks.some(t=>String(t.due).slice(0,10)===dateStr)) dots.push('<div class="cal-dot" style="background:var(--teal)"></div>');
+    if(DB.habitLogs.some(l=>String(l.date).slice(0,10)===dateStr)) dots.push('<div class="cal-dot" style="background:var(--violet)"></div>');
+    if(DB.workouts.some(w=>String(w.date).slice(0,10)===dateStr) || DB.runs.some(r=>String(r.date).slice(0,10)===dateStr)) dots.push('<div class="cal-dot" style="background:var(--amber)"></div>');
+    if(DB.journal.some(j=>String(j.date).slice(0,10)===dateStr)) dots.push('<div class="cal-dot" style="background:var(--rose)"></div>');
+    if((DB.calendarEvents||[]).some(e=>String(e.date).slice(0,10)===dateStr)) dots.push('<div class="cal-dot" style="background:#6C8CFF"></div>');
+    html += `<div class="cal-cell ${isToday?'today':''}"><span class="dnum">${d}</span><div class="cal-dot-row">${dots.join('')}</div></div>`;
+  }
+  grid.innerHTML = html;
+  renderEventList();
+}
+function renderEventList(){
+  const today = todayStr();
+  const upcoming = (DB.calendarEvents||[]).filter(e=>String(e.date).slice(0,10)>=today).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  document.getElementById('eventList').innerHTML = upcoming.map(e=>`
+    <div class="task-row">
+      <span class="cat-dot" style="background:#6C8CFF;flex-shrink:0;"></span>
+      <div class="t-name">${escapeHtml(e.title)}</div>
+      <span class="tagchip">${escapeHtml(e.category||'evento')}</span>
+      <span class="stat-label">${brDate(e.date)}</span>
+      <button class="row-del" onclick="confirmAction('Excluir evento?','Essa ação não pode ser desfeita.', () => CalendarEvents.remove('${e.id}'))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>`).join('') || '<div class="empty-note">Nenhum evento futuro. Adicione um com "+ Novo evento".</div>';
+}
+
+function renderFiles(){
+  document.getElementById('filesGrid').innerHTML = DB.files.map(f=>`
+    <div class="card file-card" style="cursor:${f.path?'pointer':'default'};" ${f.path?`onclick="downloadFile('${f.id}','${escapeHtml(f.name).replace(/'/g,"\\'")}')"`:''}>
+      <div class="file-ic" style="background:rgba(79,216,196,.14);color:var(--teal)">📄</div>
+      <b>${escapeHtml(f.name)}</b>
+      <span>${escapeHtml(f.project||'—')} · ${escapeHtml(f.size||'')}</span>
+      <button class="row-del" style="position:absolute;top:10px;right:10px;" onclick="event.stopPropagation(); confirmAction('Excluir arquivo?','O arquivo será apagado do servidor. Essa ação não pode ser desfeita.', () => Files.remove('${f.id}'))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>`).join('') || '<div class="empty-note">Nenhum arquivo enviado ainda. Clique em "+ Adicionar arquivo" para enviar um arquivo real.</div>';
+}
+
+function renderAchievements(){
+  const tasksDone = DB.tasks.filter(t=>t.done).length;
+  const booksDone = DB.books.filter(b=>b.progress>=100).length;
+  const totalRunKm = DB.runs.reduce((s,r)=>s+Number(r.distance),0);
+  const xp = tasksDone*10 + DB.habitLogs.length*4 + DB.workouts.length*20 + DB.runs.length*15 + booksDone*50;
+  const level = Math.floor(xp/500)+1;
+  const inLevel = xp % 500;
+  document.getElementById('xpRing').style.background = `conic-gradient(var(--teal) 0% ${inLevel/500*100}%, var(--border-soft) ${inLevel/500*100}% 100%)`;
+  document.getElementById('xpLevelLabel').textContent = 'Lv ' + level;
+  document.getElementById('xpLabel').textContent = xp + ' XP';
+  document.getElementById('xpNext').textContent = `próximo nível em ${500-inLevel} XP`;
+  document.getElementById('xpBarFill').style.width = (inLevel/500*100) + '%';
+
+  const badges = [
+    {icon:'🔥', name:'30 dias treinando', unlocked: (DB.workouts.length+DB.runs.length)>=30, progress:`${DB.workouts.length+DB.runs.length}/30`},
+    {icon:'📚', name:'50 livros lidos', unlocked: booksDone>=50, progress:`${booksDone}/50`},
+    {icon:'🏃', name:'100 km corridos', unlocked: totalRunKm>=100, progress:`${totalRunKm.toFixed(0)}/100`},
+    {icon:'✅', name:'100 tarefas concluídas', unlocked: tasksDone>=100, progress:`${tasksDone}/100`},
+    {icon:'🎯', name:'5 metas cadastradas', unlocked: DB.goals.length>=5, progress:`${DB.goals.length}/5`},
+  ];
+  document.getElementById('badgesGrid').innerHTML = badges.map(b=>`
+    <div class="badge-card"><div class="badge-ic ${b.unlocked?'':'locked'}">${b.icon}</div><b>${b.name}</b><span>${b.unlocked?'Concluído':b.progress}</span></div>
+  `).join('');
+
+  const ranking = DB.habits.map(h=>({name:h.name, streak:computeStreak(h.id)})).sort((a,b)=>b.streak-a.streak);
+  document.getElementById('streakRanking').innerHTML = ranking.map((r,i)=>`
+    <div class="rank-row"><span class="rank-num">${String(i+1).padStart(2,'0')}</span><span style="flex:1;">${escapeHtml(r.name)}</span><span class="streak-flame">🔥 ${r.streak} dias</span></div>
+  `).join('') || '<div class="empty-note">Cadastre hábitos para ver o ranking.</div>';
+}
+
+function renderSettings(){
+  const s = DB.settings || {};
+  document.getElementById('notifHabits').classList.toggle('on', !!s.notifHabits);
+  document.getElementById('notifTreino').classList.toggle('on', !!s.notifTreino);
+  document.getElementById('notifResumo').classList.toggle('on', !!s.notifResumo);
+  document.getElementById('settingsThemeSwitch').classList.toggle('on', s.theme==='dark');
+}
+
+/* =========================================================
+   FORM MODAL GENÉRICO
+   ========================================================= */
+function openForm(title, fields, onSave){
+  document.getElementById('formModalTitle').textContent = title;
+  const body = document.getElementById('formModalBody');
+  const errEl = document.getElementById('formModalError');
+  errEl.textContent = '';
+  body.innerHTML = fields.map(f=>{
+    if(f.type==='category'){
+      const isCustom = f.value && !f.options.includes(f.value);
+      return `<div class="form-field"><label>${f.label}</label>
+        <select data-key="${f.key}__select" onchange="const t=this.nextElementSibling; t.style.display = this.value==='__custom__' ? 'block':'none';">
+          ${f.options.map(o=>`<option value="${o}" ${!isCustom && o===f.value?'selected':''}>${o}</option>`).join('')}
+          <option value="__custom__" ${isCustom?'selected':''}>Outra (digite)…</option>
+        </select>
+        <input type="text" data-key="${f.key}" placeholder="Categoria personalizada" value="${isCustom?escapeHtml(f.value):''}" style="display:${isCustom?'block':'none'};margin-top:6px;">
+      </div>`;
+    }
+    if(f.type==='select'){
+      return `<div class="form-field"><label>${f.label}</label><select data-key="${f.key}">${f.options.map(o=>`<option value="${o.value}" ${o.value===f.value?'selected':''}>${o.label}</option>`).join('')}</select></div>`;
+    }
+    if(f.type==='textarea'){
+      return `<div class="form-field"><label>${f.label}</label><textarea data-key="${f.key}" placeholder="${f.placeholder||''}">${f.value||''}</textarea></div>`;
+    }
+    return `<div class="form-field"><label>${f.label}</label><input data-key="${f.key}" type="${f.type||'text'}" value="${f.value??''}" placeholder="${f.placeholder||''}"></div>`;
+  }).join('');
+  const overlay = document.getElementById('formModalOverlay');
+  overlay.classList.add('open');
+  const saveBtn = document.getElementById('formModalSave');
+  const cancelBtn = document.getElementById('formModalCancel');
+  function close(){ overlay.classList.remove('open'); saveBtn.onclick=null; cancelBtn.onclick=null; }
+  cancelBtn.onclick = close;
+  saveBtn.onclick = async () => {
+    const values = {};
+    body.querySelectorAll('[data-key]').forEach(el=>{ values[el.dataset.key] = el.value; });
+    // Campos de categoria: se não for "outra", o valor final vem do <select>;
+    // se for "outra", o valor final já está no campo de texto (mesma chave).
+    fields.forEach(f=>{
+      if(f.type==='category'){
+        const selectVal = values[f.key+'__select'];
+        if(selectVal && selectVal !== '__custom__'){ values[f.key] = selectVal; }
+        delete values[f.key+'__select'];
+      }
+    });
+    try{
+      await onSave(values);
+      close();
+    }catch(err){
+      errEl.textContent = err.message || 'Não foi possível salvar.';
+    }
+  };
+}
+
+/* =========================================================
+   BUSCA GLOBAL
+   ========================================================= */
+function buildSearchIndex(){
+  const idx = [];
+  DB.tasks.forEach(t=>idx.push({type:'Tarefa', label:t.title, page:'tasks'}));
+  DB.projects.forEach(p=>idx.push({type:'Projeto', label:p.name, page:'projects'}));
+  DB.habits.forEach(h=>idx.push({type:'Hábito', label:h.name, page:'habits'}));
+  DB.goals.forEach(g=>idx.push({type:'Meta', label:g.title, page:'goals'}));
+  DB.notes.forEach(n=>idx.push({type:'Nota', label:n.title, page:'secondbrain'}));
+  DB.books.forEach(b=>idx.push({type:'Livro', label:b.title, page:'reading'}));
+  DB.courses.forEach(c=>idx.push({type:'Curso', label:c.title, page:'courses'}));
+  DB.files.forEach(f=>idx.push({type:'Arquivo', label:f.name, page:'files'}));
+  DB.transactions.forEach(t=>idx.push({type:'Transação', label:t.desc, page:'finance'}));
+  return idx;
+}
+function renderSearchResults(query){
+  const idx = buildSearchIndex();
+  const q = query.trim().toLowerCase();
+  const results = q ? idx.filter(i=>i.label.toLowerCase().includes(q)).slice(0,30) : idx.slice(0,10);
+  document.getElementById('searchCount').textContent = results.length + ' resultados';
+  const groups = {};
+  results.forEach(r=>{ (groups[r.type]=groups[r.type]||[]).push(r); });
+  document.getElementById('globalSearchResults').innerHTML = Object.entries(groups).map(([type,items])=>`
+    <div class="modal-group-label">${type}</div>
+    ${items.map(i=>`<div class="modal-result-row" data-goto="${i.page}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/></svg>${escapeHtml(i.label)}<span class="rtype">${i.page}</span></div>`).join('')}
+  `).join('') || '<div class="empty-note">Nada encontrado.</div>';
+}
+
+/* =========================================================
+   NAVEGAÇÃO
+   ========================================================= */
+const titleMap = {
+  dashboard:['Dashboard','Visão geral do seu dia'], projects:['Projetos','Seus projetos em andamento'],
+  tasks:['Tarefas','Organize seu dia'], goals:['Metas','Acompanhe seus objetivos'],
+  journal:['Diário','Seus registros pessoais'], secondbrain:['Second Brain','Sua base de conhecimento'],
+  reading:['Leituras','Seus livros'], courses:['Cursos','Seu progresso em cursos'],
+  habits:['Hábitos','Consistência dia após dia'], fitness:['Treinos & corrida','Sua evolução física'],
+  sleep:['Sono','Qualidade do seu descanso'], nutrition:['Nutrição & corpo','Alimentação, água e peso'],
+  finance:['Finanças','Seu controle financeiro'], calendar:['Calendário','Tudo em um só lugar'],
+  files:['Arquivos','Central de documentos'], achievements:['Conquistas','Sua evolução gamificada'],
+  ai:['Assistente IA','Pergunte sobre seus dados'], settings:['Configurações','Preferências da conta']
+};
+document.querySelectorAll('.nav-item[data-page]').forEach(item=>{
+  item.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(item.dataset.page).classList.add('active');
+    const [t,s] = titleMap[item.dataset.page];
+    document.getElementById('pageTitle').textContent = t;
+    document.getElementById('pageSub').textContent = s;
+  });
+});
+function goToPage(page){ document.querySelector(`.nav-item[data-page="${page}"]`)?.click(); }
+
+/* Theme */
+async function setTheme(dark){
+  document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+  document.getElementById('settingsThemeSwitch').classList.toggle('on', dark);
+  if(!DB) return;
+  DB.settings.theme = dark?'dark':'light';
+  try{ await api('/settings', {method:'PATCH', body: JSON.stringify({theme: DB.settings.theme})}); }catch(e){ /* silencioso */ }
+}
+document.getElementById('themeToggle').addEventListener('click', ()=> setTheme(DB?.settings?.theme!=='dark'));
+document.getElementById('settingsThemeSwitch').addEventListener('click', ()=> setTheme(DB?.settings?.theme!=='dark'));
+['notifHabits','notifTreino','notifResumo'].forEach(key=>{
+  document.getElementById(key).addEventListener('click', async function(){
+    const next = !this.classList.contains('on');
+    this.classList.toggle('on', next);
+    DB.settings[key] = next;
+    try{ await api('/settings', {method:'PATCH', body: JSON.stringify({[key]: next})}); }
+    catch(e){ showToast('Não foi possível salvar a preferência', true); }
+  });
+});
+
+document.querySelectorAll('[data-projfilter]').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('[data-projfilter]').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    projFilter = chip.dataset.projfilter;
+    renderProjects();
+  });
+});
+document.querySelectorAll('[data-taskfilter]').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('[data-taskfilter]').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    taskFilter = chip.dataset.taskfilter;
+    renderTasks();
+  });
+});
+document.getElementById('noteSearch').addEventListener('input', renderNotes);
+
+document.getElementById('calPrev').addEventListener('click', ()=>{ calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); });
+document.getElementById('calNext').addEventListener('click', ()=>{ calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); });
+
+/* =========================================================
+   BOTÕES "+ Novo..."
+   ========================================================= */
+document.getElementById('btnNewTask').onclick = () => openTaskForm();
+
+document.getElementById('btnNewProject').onclick = () => openProjectForm();
+
+document.getElementById('btnNewGoal').onclick = () => openGoalForm();
+
+document.getElementById('btnNewJournal').onclick = () => openJournalForm();
+
+document.getElementById('btnNewNote').onclick = () => openNoteForm();
+
+document.getElementById('btnNewBook').onclick = () => openBookForm();
+
+document.getElementById('btnNewCourse').onclick = () => openCourseForm();
+
+document.getElementById('btnNewHabit').onclick = () => openHabitForm();
+
+document.getElementById('btnNewWorkout').onclick = () => openWorkoutForm();
+
+document.getElementById('btnNewRun').onclick = () => openRunForm();
+
+document.getElementById('btnNewSleep').onclick = () => openForm('Registrar noite de sono', [
+  {key:'date', label:'Data', type:'date', value: todayStr()},
+  {key:'hours', label:'Horas dormidas', type:'number', value:7.5},
+  {key:'quality', label:'Qualidade (1-5)', type:'select', value:'4', options:[1,2,3,4,5].map(n=>({value:n,label:n}))},
+], v => SleepLogs.upsert({date:v.date||todayStr(), hours:+v.hours||0, quality:+v.quality||3}));
+
+document.getElementById('btnNewMeal').onclick = () => openForm('Nova refeição', [
+  {key:'name', label:'Descrição', value:''},
+  {key:'calories', label:'Calorias', type:'number', value:300},
+], v => Meals.add({name:v.name||'Refeição', calories:+v.calories||0, date:todayStr()}));
+
+document.getElementById('btnNewWeight').onclick = () => openForm('Registrar peso', [
+  {key:'kg', label:'Peso (kg)', type:'number', value:75},
+  {key:'bodyFat', label:'% gordura corporal', type:'number', value:16},
+], v => WeightLogs.upsert({date:todayStr(), kg:+v.kg||0, bodyFat:+v.bodyFat||0}));
+
+document.getElementById('btnNewTransaction').onclick = () => openTransactionForm();
+
+document.getElementById('btnNewEvent').onclick = () => openForm('Novo evento', [
+  {key:'title', label:'Título', value:''},
+  {key:'date', label:'Data', type:'date', value: todayStr()},
+  {key:'category', label:'Categoria', type:'select', value:'evento', options:[{value:'evento',label:'Evento'},{value:'tarefa',label:'Tarefa'},{value:'habito',label:'Hábito'},{value:'treino',label:'Treino'}]},
+  {key:'notes', label:'Notas (opcional)', type:'textarea', value:''},
+], v => CalendarEvents.add({title:v.title||'Novo evento', date:v.date||todayStr(), category:v.category, notes:v.notes||''}));
+
+// Upload real: dispara o seletor de arquivo do sistema e envia via multipart
+// para POST /files/upload. O backend salva o binário em disco e cria o metadado.
+const hiddenFileInput = document.createElement('input');
+hiddenFileInput.type = 'file';
+hiddenFileInput.style.display = 'none';
+document.body.appendChild(hiddenFileInput);
+
+document.getElementById('btnNewFile').onclick = () => hiddenFileInput.click();
+
+hiddenFileInput.addEventListener('change', async () => {
+  const file = hiddenFileInput.files[0];
+  hiddenFileInput.value = '';
+  if(!file) return;
+  const formData = new FormData();
+  formData.append('file', file);
+  showToast('Enviando arquivo…');
+  try{
+    const res = await fetch(`${API_BASE}/files/upload`, {
+      method:'POST',
+      headers: { Authorization: `Bearer ${authToken}` }, // sem Content-Type: o browser define o boundary do multipart sozinho
+      body: formData,
+    });
+    if(!res.ok){ const err = await res.json().catch(()=>({})); throw new Error(err.message || 'Falha no upload'); }
+    const saved = await res.json();
+    DB.files.unshift(saved);
+    renderAll();
+    showToast('Arquivo enviado');
+  }catch(err){ showToast(err.message, true); }
+});
+
+// Baixa o arquivo autenticado (não dá pra usar <a href> puro pois precisa do Bearer token).
+async function downloadFile(id, name){
+  try{
+    const res = await fetch(`${API_BASE}/files/${id}/download`, { headers: { Authorization: `Bearer ${authToken}` } });
+    if(!res.ok) throw new Error('Não foi possível baixar o arquivo');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.click();
+    URL.revokeObjectURL(url);
+  }catch(err){ showToast(err.message, true); }
+}
+
+/* =========================================================
+   BUSCA GLOBAL — abrir/fechar
+   ========================================================= */
+const searchOverlay = document.getElementById('searchModalOverlay');
+document.getElementById('openSearch').addEventListener('click', ()=>{
+  searchOverlay.classList.add('open');
+  document.getElementById('globalSearchInput').value='';
+  renderSearchResults('');
+  setTimeout(()=>document.getElementById('globalSearchInput').focus(), 30);
+});
+document.getElementById('globalSearchInput').addEventListener('input', e => renderSearchResults(e.target.value));
+document.getElementById('globalSearchResults').addEventListener('click', e => {
+  const row = e.target.closest('.modal-result-row');
+  if(row){ searchOverlay.classList.remove('open'); goToPage(row.dataset.goto); }
+});
+searchOverlay.addEventListener('click', e => { if(e.target===searchOverlay) searchOverlay.classList.remove('open'); });
+document.addEventListener('keydown', e => {
+  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); document.getElementById('openSearch').click(); }
+  if(e.key==='Escape'){ searchOverlay.classList.remove('open'); document.getElementById('formModalOverlay').classList.remove('open'); }
+});
+
+/* =========================================================
+   ASSISTENTE IA — chama seu próprio backend (você implementa o endpoint)
+   ========================================================= */
+function buildDataContext(){
+  const today = todayStr();
+  const balance = DB.transactions.reduce((s,t)=>s+t.amount,0);
+  const todaysTasks = DB.tasks.filter(t=>String(t.due).slice(0,10)===today);
+  const doneToday = todaysTasks.filter(t=>t.done).length;
+  const streaks = DB.habits.map(h=>`${h.name}: ${computeStreak(h.id)} dias`).join('; ');
+  const last7Sleep = DB.sleepLogs.slice(0,7);
+  const avgSleep = last7Sleep.length ? (last7Sleep.reduce((s,l)=>s+l.hours,0)/last7Sleep.length).toFixed(1) : 'sem dados';
+  return `Tarefas hoje: ${doneToday}/${todaysTasks.length}. Pendentes: ${DB.tasks.filter(t=>!t.done).map(t=>t.title).join('; ')||'nenhuma'}.
+Projetos: ${DB.projects.map(p=>`${p.name} (${p.status}, ${p.progress}%)`).join('; ')}.
+Streaks: ${streaks || 'sem hábitos'}. Saldo: R$ ${balance.toFixed(2)}. Sono médio 7d: ${avgSleep}h.
+Metas: ${DB.goals.map(g=>`${g.title} (${Math.round(g.current/g.target*100)}%)`).join('; ')}.`;
+}
+function addChatMsg(role, text){
+  const wrap = document.getElementById('chatWrap');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.textContent = text;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+async function sendToAI(prompt){
+  addChatMsg('user', prompt);
+  addChatMsg('ai', 'Pensando…');
+  const wrap = document.getElementById('chatWrap');
+  const thinkingEl = wrap.lastElementChild;
+  try{
+    // Espera-se um endpoint próprio, ex. POST /assistant, que no backend
+    // chama a API da Anthropic com sua chave (nunca exponha a chave no frontend).
+    const data = await api('/assistant', {method:'POST', body: JSON.stringify({ prompt, context: buildDataContext() })});
+    thinkingEl.textContent = data.reply || 'Não consegui gerar uma resposta agora.';
+  }catch(e){
+    thinkingEl.textContent = 'Endpoint de assistente ainda não implementado no backend (ou fora do ar). Crie um módulo /assistant no NestJS que chame a API da Anthropic com sua chave no servidor.';
+  }
+  wrap.scrollTop = wrap.scrollHeight;
+}
+document.getElementById('chatSend').addEventListener('click', ()=>{
+  const input = document.getElementById('chatInput');
+  if(!input.value.trim()) return;
+  sendToAI(input.value.trim());
+  input.value='';
+});
+document.getElementById('chatInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ document.getElementById('chatSend').click(); } });
+document.querySelectorAll('.ai-suggestion').forEach(el=>{
+  el.addEventListener('click', ()=> sendToAI(el.dataset.prompt));
+});
+
+/* =========================================================
+   EXPORTAÇÃO
+   ========================================================= */
+function downloadBlob(filename, content, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('btnExportJson').addEventListener('click', ()=>{
+  downloadBlob('lifeflow-backup.json', JSON.stringify(DB, null, 2), 'application/json');
+});
+document.getElementById('btnExportCsv').addEventListener('click', ()=>{
+  const rows = [['Título','Categoria','Prioridade','Prazo','Concluída']];
+  DB.tasks.forEach(t=>rows.push([t.title, t.category, t.priority, t.due, t.done?'sim':'não']));
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  downloadBlob('lifeflow-tarefas.csv', csv, 'text/csv');
+});
+
+setAuthMode('login');
+</script>
+</body>
+</html>
